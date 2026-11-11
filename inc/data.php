@@ -42,15 +42,15 @@ function load_data(bool $force = false): array {
     throw new RuntimeException('Could not load data from Supabase.');
 }
 
-function load_jobs(bool $force = false): array {
+function load_cached(string $fn, string $must, string $name, bool $force = false): array {
     global $CONFIG;
-    $file = dirname($CONFIG['cache_file']) . '/jobs.json';
+    $file = dirname($CONFIG['cache_file']) . '/' . $name . '.json';
     $ttl = (int)$CONFIG['cache_ttl'];
     if (!$force && is_file($file) && (time() - filemtime($file)) < $ttl) {
         $d = json_decode((string)file_get_contents($file), true);
         if (is_array($d)) { return $d; }
     }
-    $d = fetch_remote($CONFIG, 'app_get_jobs', 'future');
+    $d = fetch_remote($CONFIG, $fn, $must);
     if ($d !== null) {
         @file_put_contents($file, json_encode($d), LOCK_EX);
         return $d;
@@ -59,5 +59,8 @@ function load_jobs(bool $force = false): array {
         $d = json_decode((string)file_get_contents($file), true);
         if (is_array($d)) { $d['_stale'] = true; return $d; }
     }
-    throw new RuntimeException('Could not load jobs data from Supabase.');
+    throw new RuntimeException('Could not load ' . $name . ' data from Supabase.');
 }
+
+function load_jobs(bool $force = false): array { return load_cached('app_get_jobs', 'future', 'jobs', $force); }
+function load_policy(bool $force = false): array { return load_cached('app_get_policy', 'schemes', 'policy', $force); }

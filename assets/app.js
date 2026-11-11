@@ -35,7 +35,7 @@
   function openItem(item) {
     var tpl = item && $('template', item);
     if (!tpl || !sheet || !sheet.showModal) return;
-    var t = $('.row-title', item) || $('.tile-top b', item);
+    var t = $('.row-title', item) || $('.tile-name', item) || $('.tile-top b', item);
     stitle.textContent = t ? t.textContent : '';
     sbody.innerHTML = '';
     sbody.appendChild(tpl.content.cloneNode(true));
