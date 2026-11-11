@@ -49,7 +49,7 @@ function palette_json(array $d): string {
 function page_head(string $title, string $active, array $d = []): void {
     global $CONFIG;
     $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups']];
-    $brand = $CONFIG['brand'] ?? 'Opportunity';
+    $brand = 'BusinessOS';
     $last = $d['log'][0]['logged_on'] ?? null;
     ?><!doctype html>
 <html lang="en">
@@ -58,7 +58,7 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="light dark">
-<title><?= h($title) ?> · <?= h($CONFIG['site_name']) ?></title>
+<title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=2">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>

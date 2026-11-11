@@ -21,12 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'That password is incorrect.';
     }
 }
-$brand = $CONFIG['brand'] ?? 'Opportunity';
+$brand = 'BusinessOS';
 ?><!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light dark">
-<title>Sign in · <?= h($CONFIG['site_name']) ?></title>
+<title>Sign in · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=2">
 </head><body class="login">
 <div id="particles" data-count="55" aria-hidden="true"></div>

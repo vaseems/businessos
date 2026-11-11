@@ -1,4 +1,4 @@
-# Startup Opportunity Dashboard (PHP)
+# BusinessOS (PHP)
 
 Shows the ranked ideas, startup dataset and charts from the `india-startup-ideas` Supabase project.
 
