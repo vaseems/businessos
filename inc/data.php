@@ -66,3 +66,4 @@ function load_jobs(bool $force = false): array { return load_cached('app_get_job
 function load_policy(bool $force = false): array { return load_cached('app_get_policy', 'schemes', 'policy', $force); }
 
 function load_funding(bool $force = false): array { return load_cached('app_get_funding', 'deals', 'funding', $force); }
+function load_opportunities(bool $force = false): array { return load_cached('app_get_funding_sources', 'sources', 'opportunities', $force); }

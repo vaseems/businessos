@@ -175,3 +175,9 @@
     }
   });
 })();
+
+/* Keep the current page's tab visible in the scrollable mobile nav */
+(function () {
+  var a = document.querySelector('.nav a[aria-current=page]'), n = document.querySelector('.nav');
+  if (a && n && n.scrollWidth > n.clientWidth) n.scrollLeft = a.offsetLeft - (n.clientWidth - a.offsetWidth) / 2;
+})();
