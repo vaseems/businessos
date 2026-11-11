@@ -131,6 +131,27 @@
     });
   }
 
+  // Region switch (India / US): remembered in a cookie; the state choice is cleared because states differ per country.
+  var secure = location.protocol === 'https:' ? '; secure' : '';
+  function setRegion(r) {
+    try {
+      document.cookie = 'bos_region=' + r + '; path=/; max-age=31536000; samesite=lax' + secure;
+      document.cookie = 'bos_state=; path=/; max-age=0; samesite=lax' + secure;
+    } catch (e) {}
+    location.href = location.pathname + (location.search.replace(/[?&]tab=[^&]*/, '').replace(/^&/, '?') || '');
+  }
+  $$('.regsw button').forEach(function (b) {
+    b.addEventListener('click', function () { if (b.getAttribute('aria-pressed') !== 'true') setRegion(b.dataset.region); });
+  });
+  // First visit with no saved choice and no country from the server: guess once from the browser time zone.
+  if (document.body.dataset.geo === 'unknown') {
+    var tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    var usZone = /^(America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Boise|Juneau|Sitka|Nome|Adak|Metlakatla|Yakutat|Menominee|North_Dakota\/.*|Indiana\/.*|Kentucky\/.*)|US\/.*|Pacific\/Honolulu)$/.test(tz);
+    try { document.cookie = 'bos_region=' + (usZone ? 'us' : 'in') + '; path=/; max-age=31536000; samesite=lax' + secure; } catch (e) {}
+    if (usZone) location.reload();
+  }
+
   // Command palette (Cmd/Ctrl+K)
   var pal = $('#palette'), pq = $('#pal-q'), pl = $('#pal-list'), data = [], sel = 0, shown = [];
   try { data = JSON.parse($('#palette-data').textContent); } catch (e) {}

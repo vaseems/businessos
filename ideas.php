@@ -7,6 +7,7 @@ require __DIR__ . '/inc/layout.php';
 
 $d = load_or_fail();
 $ideas = $d['ideas'] ?? [];
+$rc = region_cfg();
 page_head('Ideas', 'ideas.php', $d);
 stale_notice($d);
 ?>
@@ -40,9 +41,9 @@ stale_notice($d);
     <template>
       <div class="sheet-meta"><?= ring($i['score'], 'lg') ?><div class="facts-inline">
         <span>Critical <b><?= (int)$i['critical'] ?></b></span><span>Demand <b><?= (int)$i['demand'] ?></b></span>
-        <span>Ease to build <b><?= (int)$i['ease'] ?></b></span><span>India edge <b><?= (int)$i['india_edge'] ?></b></span></div></div>
+        <span>Ease to build <b><?= (int)$i['ease'] ?></b></span><span><?= h($rc['edge']) ?> <b><?= (int)$i['india_edge'] ?></b></span></div></div>
       <dl class="facts">
-        <div><dt>India angle</dt><dd><?= h($i['india_angle']) ?></dd></div>
+        <div><dt><?= h($rc['angle']) ?></dt><dd><?= h($i['india_angle']) ?></dd></div>
         <div><dt>Problem</dt><dd><?= h($i['problem']) ?></dd></div>
         <div><dt>Solution</dt><dd><?= h($i['solution']) ?></dd></div>
         <div><dt>First customers</dt><dd><?= h($i['first_customers']) ?></dd></div>

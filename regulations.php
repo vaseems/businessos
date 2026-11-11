@@ -34,6 +34,9 @@ $recent = array_reverse(array_values(array_filter($ms, fn($m) => $m['on_date'] <
 $fmt = fn(?string $d) => $d ? date('j M Y', strtotime($d)) : '';
 $days = fn(string $d) => (int)round((strtotime($d) - strtotime($today)) / 86400);
 
+$rc = region_cfg();
+$cur = current_state();
+$hasStateLaws = (bool)array_filter($regs, fn($r) => !empty($r['state']));
 $extra = [];
 foreach ($regs as $r) { $extra[] = ['k' => 'Regulations', 't' => (string)$r['name'], 's' => (string)$r['category'], 'h' => 'regulations.php#' . $r['slug']]; }
 
@@ -67,7 +70,7 @@ stale_notice($P);
 </div>
 
 <div class="toolbar">
-  <label class="field search"><?= icon('search') ?><input id="rq" type="search" placeholder="Search laws, duties, regulators" aria-label="Search regulations"></label>
+  <label class="field search"><?= icon('search') ?><input id="rq" type="search" placeholder="Search laws, duties, <?= $rc['code'] === 'us' ? 'agencies' : 'regulators' ?>" aria-label="Search regulations"></label>
 </div>
 <div class="seg chips" role="group" aria-label="Area" id="rcat">
   <button type="button" data-cat="" aria-pressed="true">All areas</button>
@@ -75,7 +78,7 @@ stale_notice($P);
 </div>
 <p class="count"><span id="rcount"><?= count($regs) ?></span> laws and rules</p>
 
-<ul class="rows" id="rlist">
+<ul class="rows" id="rlist" data-state="<?= h($cur) ?>" data-names="<?= h(json_encode(state_map(), JSON_UNESCAPED_UNICODE)) ?>">
 <?php foreach ($regs as $r):
     $search = strtolower(implode(' ', [$r['name'], $r['short_name'], $r['category'], $r['regulator'], $r['summary'], $r['applies_to'], implode(' ', $r['key_obligations'] ?? [])]));
     $url = safe_url((string)$r['official_url']);
@@ -83,10 +86,10 @@ stale_notice($P);
     $init = count($words) > 1 ? mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1) : mb_substr($words[0], 0, 2);
     $init = mb_strtoupper($init);
 ?>
-  <li class="row rrow" data-slug="<?= h($r['slug']) ?>" data-search="<?= h($search) ?>" data-cat="<?= h($r['category']) ?>">
+  <li class="row rrow" data-slug="<?= h($r['slug']) ?>" data-search="<?= h($search) ?>" data-cat="<?= h($r['category']) ?>" data-state="<?= h(!empty($r['state']) ? state_slug((string)$r['state']) : '') ?>">
     <button type="button" class="row-btn" data-open>
       <span class="rkb cat-<?= h(substr(md5($r['category']), 0, 1)) ?>"><?= h($init) ?></span>
-      <span class="row-main"><b class="row-title"><?= h($r['name']) ?></b><span class="row-sub"><?= h((string)$r['regulator']) ?><?= $r['effective_from'] ? ' · effective ' . h($fmt($r['effective_from'])) : '' ?></span></span>
+      <span class="row-main"><b class="row-title"><?= h($r['name']) ?></b><span class="row-sub"><?= !empty($r['state']) ? h((string)$r['state']) . ' · ' : '' ?><?= h((string)$r['regulator']) ?><?= $r['effective_from'] ? ' · effective ' . h($fmt($r['effective_from'])) : '' ?></span></span>
       <span class="st st-<?= h($r['status']) ?>"><?= h($statusLbl[$r['status']] ?? $r['status']) ?></span>
       <span class="glyph"><span class="tag"><?= h($r['category']) ?></span></span>
     </button>
@@ -97,7 +100,8 @@ stale_notice($P);
       <p class="sheet-lead"><?= h((string)$r['summary']) ?></p>
       <dl class="facts">
         <div><dt>Applies to</dt><dd><?= h((string)$r['applies_to']) ?></dd></div>
-        <div><dt>Regulator</dt><dd><?= h((string)$r['regulator']) ?></dd></div>
+        <div><dt><?= $rc['code'] === 'us' ? 'Enforced by' : 'Regulator' ?></dt><dd><?= h((string)$r['regulator']) ?></dd></div>
+        <?php if (!empty($r['state'])): ?><div><dt>Jurisdiction</dt><dd><?= h((string)$r['state']) ?> (state law)</dd></div><?php endif; ?>
       </dl>
       <?php if (!empty($r['key_obligations'])): ?>
       <h3 class="sheet-h" style="margin-top:22px">Key obligations</h3>
@@ -127,17 +131,18 @@ stale_notice($P);
 <?php endforeach; ?>
 </ul>
 <section class="empty" id="rnone" hidden><h1>No matches</h1><p>Try another area or search term.</p></section>
-<p class="muted small jnote">Central laws and rules that matter most to startups and small businesses. Reviewed monthly. Last refreshed <?= h(date('j M Y', strtotime((string)($P['refreshed_at'] ?? 'now')))) ?>.</p>
+<p class="muted small jnote"><?= $rc['code'] === 'us' ? 'Federal laws and rules, plus the state laws that matter most to startups and small businesses. Choose your state in the header to see its laws next to the federal ones.' : 'Central laws and rules that matter most to startups and small businesses.' ?> Reviewed monthly. Last refreshed <?= h(date('j M Y', strtotime((string)($P['refreshed_at'] ?? 'now')))) ?>.</p>
 
 <script>
 (function () {
-  var q = document.getElementById('rq'), seg = document.getElementById('rcat');
+  var q = document.getElementById('rq'), seg = document.getElementById('rcat'), rl = document.getElementById('rlist');
+  var sel = rl.dataset.state || '';
   var items = document.querySelectorAll('#rlist > li'), cnt = document.getElementById('rcount'), none = document.getElementById('rnone');
   var cat = '';
   function apply() {
     var t = (q.value || '').trim().toLowerCase(), n = 0;
     items.forEach(function (li) {
-      var ok = (!t || li.dataset.search.indexOf(t) > -1) && (!cat || li.dataset.cat === cat);
+      var ok = (!t || li.dataset.search.indexOf(t) > -1) && (!cat || li.dataset.cat === cat) && (!sel || !li.dataset.state || li.dataset.state === sel);
       li.hidden = !ok; if (ok) n++;
     });
     cnt.textContent = n; none.hidden = n > 0;
@@ -149,6 +154,8 @@ stale_notice($P);
     apply();
   });
   q.addEventListener('input', apply);
+  document.addEventListener('bos:state', function (e) { sel = (e.detail && e.detail.slug) || ''; apply(); });
+  apply();
 })();
 </script>
 <?php page_foot(['_extra' => $extra]); ?>

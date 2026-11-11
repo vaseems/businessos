@@ -38,3 +38,4 @@ function num(mixed $n): string {
     if ($n === null || $n === '') return '—';
     return number_format((float)$n);
 }
+require __DIR__ . '/region.php';

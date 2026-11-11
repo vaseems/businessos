@@ -1,34 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/** States and union territories for the global state picker. */
-function india_regions(): array {
-    return [
-        'States' => ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-                     'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-                     'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'],
-        'Union territories' => ['Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
-                                'Ladakh', 'Lakshadweep', 'Puducherry'],
-    ];
-}
-
-function state_slug(string $name): string {
-    return trim((string)preg_replace('/[^a-z0-9]+/', '-', strtolower($name)), '-');
-}
-
-/** Slug => name for every state and union territory. */
-function state_map(): array {
-    $m = [];
-    foreach (india_regions() as $names) { foreach ($names as $n) { $m[state_slug($n)] = $n; } }
-    return $m;
-}
-
-/** The state chosen in the header, or '' for all of India. Validated against the known list. */
-function current_state(): string {
-    $c = (string)($_COOKIE['bos_state'] ?? '');
-    return isset(state_map()[$c]) ? $c : '';
-}
-
 function icon(string $name): string {
     $p = [
         'pin'      => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
@@ -58,7 +30,7 @@ function ring(int|float $score, string $cls = ''): string {
 }
 
 function glyph(array $i): string {
-    $out = '<span class="glyph" role="img" aria-label="Critical ' . (int)$i['critical'] . ', demand ' . (int)$i['demand'] . ', ease ' . (int)$i['ease'] . ', India edge ' . (int)$i['india_edge'] . ' out of 5">';
+    $out = '<span class="glyph" role="img" aria-label="Critical ' . (int)$i['critical'] . ', demand ' . (int)$i['demand'] . ', ease ' . (int)$i['ease'] . ', ' . h(region_cfg()['edge']) . ' ' . (int)$i['india_edge'] . ' out of 5">';
     foreach (['critical', 'demand', 'ease', 'india_edge'] as $k) {
         $out .= '<i style="--h:' . ((int)$i[$k] * 20) . '%"></i>';
     }
@@ -73,7 +45,7 @@ function palette_json(array $d): string {
         ['k' => 'Pages', 't' => 'Funding', 'h' => 'funding.php'],
         ['k' => 'Pages', 't' => 'Funding opportunities', 'h' => 'opportunities.php'],
         ['k' => 'Pages', 't' => 'Jobs and skills', 'h' => 'jobs.php'],
-        ['k' => 'Pages', 't' => 'Government schemes', 'h' => 'schemes.php'],
+        ['k' => 'Pages', 't' => current_region() === 'us' ? 'Government programs' : 'Government schemes', 'h' => 'schemes.php'],
         ['k' => 'Pages', 't' => 'Regulations', 'h' => 'regulations.php'],
     ];
     foreach ($d['_extra'] ?? [] as $r) { $items[] = $r; }
@@ -91,8 +63,9 @@ function palette_json(array $d): string {
 
 function page_head(string $title, string $active, array $d = []): void {
     global $CONFIG;
-    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'funding.php' => ['Funding', 'funding'], 'opportunities.php' => ['Opportunities', 'opps'], 'jobs.php' => ['Jobs', 'jobs'], 'schemes.php' => ['Schemes', 'schemes'], 'regulations.php' => ['Regulations', 'regs']];
+    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'funding.php' => ['Funding', 'funding'], 'opportunities.php' => ['Opportunities', 'opps'], 'jobs.php' => ['Jobs', 'jobs'], 'schemes.php' => [current_region() === 'us' ? 'Programs' : 'Schemes', 'schemes'], 'regulations.php' => ['Regulations', 'regs']];
     $brand = 'BusinessOS';
+    $rc = region_cfg();
     $last = $d['log'][0]['logged_on'] ?? null;
     ?><!doctype html>
 <html lang="en">
@@ -103,10 +76,10 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="color-scheme" content="light dark">
 <title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=6">
+<link rel="stylesheet" href="assets/glass.css?v=7">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>
-<body>
+<body data-region="<?= h($rc['code']) ?>"<?= region_unknown() ? ' data-geo="unknown"' : '' ?>>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ringgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset=".55" stop-color="#bf5af2"/><stop offset="1" stop-color="#ff375f"/></linearGradient></defs></svg>
 <div class="shell">
   <aside class="side">
@@ -125,11 +98,15 @@ function page_head(string $title, string $active, array $d = []): void {
     <header class="bar">
       <h2 class="crumb"><?= h($title) ?></h2>
       <div class="bar-actions">
-        <label class="statepick" title="Your state">
+        <div class="regsw" role="group" aria-label="Region">
+          <button type="button" data-region="in" aria-pressed="<?= $rc['code'] === 'in' ? 'true' : 'false' ?>" title="India edition">India</button>
+          <button type="button" data-region="us" aria-pressed="<?= $rc['code'] === 'us' ? 'true' : 'false' ?>" title="United States edition">US</button>
+        </div>
+        <label class="statepick" title="<?= h($rc['pick']) ?>">
           <?= icon('pin') ?>
-          <select id="gstate" aria-label="Your state">
-            <option value="">All India</option>
-            <?php $cs = current_state(); foreach (india_regions() as $grp => $names): ?>
+          <select id="gstate" aria-label="<?= h($rc['pick']) ?>">
+            <option value=""><?= h($rc['all']) ?></option>
+            <?php $cs = current_state(); foreach (region_groups() as $grp => $names): ?>
             <optgroup label="<?= h($grp) ?>">
               <?php foreach ($names as $n): $sl = state_slug($n); ?><option value="<?= h($sl) ?>"<?= $sl === $cs ? ' selected' : '' ?>><?= h($n) ?></option>
               <?php endforeach; ?>
@@ -160,7 +137,7 @@ function page_foot(array $d = [], array $scripts = []): void { ?>
 
 <dialog id="palette" aria-label="Search or jump to">
   <div class="pal-card">
-    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="Search ideas, startups, funding, VCs, programs, jobs, schemes, laws" autocomplete="off" spellcheck="false" aria-label="Search"></div>
+    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="<?= h(region_cfg()['palette']) ?>" autocomplete="off" spellcheck="false" aria-label="Search"></div>
     <ul id="pal-list" role="listbox"></ul>
     <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
   </div>
@@ -169,7 +146,7 @@ function page_foot(array $d = [], array $scripts = []): void { ?>
 <script id="palette-data" type="application/json"><?= palette_json($d) ?></script>
 <?php foreach ($scripts as $s): ?><script src="<?= h($s) ?>"></script>
 <?php endforeach; ?>
-<script src="assets/app.js?v=4"></script>
+<script src="assets/app.js?v=5"></script>
 </body>
 </html>
 <?php

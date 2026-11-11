@@ -22,7 +22,7 @@ function fetch_remote(array $cfg, string $fn = 'app_get_data', string $must = 'i
     return (is_array($d) && isset($d[$must])) ? $d : null;
 }
 
-function load_data(bool $force = false): array {
+function load_data_raw(bool $force = false): array {
     global $CONFIG;
     $file = $CONFIG['cache_file'];
     $ttl = (int)$CONFIG['cache_ttl'];
@@ -62,8 +62,55 @@ function load_cached(string $fn, string $must, string $name, bool $force = false
     throw new RuntimeException('Could not load ' . $name . ' data from Supabase.');
 }
 
-function load_jobs(bool $force = false): array { return load_cached('app_get_jobs', 'future', 'jobs', $force); }
-function load_policy(bool $force = false): array { return load_cached('app_get_policy', 'schemes', 'policy', $force); }
+/** Ideas, startups and the update log for the active edition. */
+function load_data(bool $force = false): array {
+    $d = load_data_raw($force);
+    $us = current_region() === 'us';
+    $want = $us ? 'US' : 'IN';
+    $d['ideas'] = array_values(array_filter($d['ideas'] ?? [], fn($i) => strtoupper((string)($i['region'] ?? 'IN')) === $want));
+    $keep = [];
+    foreach ($d['ideas'] as $i) { $keep[$i['slug']] = true; }
+    $d['log'] = array_values(array_filter($d['log'] ?? [], fn($l) => isset($keep[$l['idea_slug'] ?? ''])));
+    if ($us) {
+        $d['startups'] = array_values(array_filter($d['startups'] ?? [], fn($s) => in_array(strtoupper((string)($s['hq_country'] ?? '')), ['US', 'USA', 'UNITED STATES'], true)));
+    }
+    return $d;
+}
 
-function load_funding(bool $force = false): array { return load_cached('app_get_funding', 'deals', 'funding', $force); }
-function load_opportunities(bool $force = false): array { return load_cached('app_get_funding_sources', 'sources', 'opportunities', $force); }
+/** Jobs data: rows tagged with a region are kept when they fit the active edition. */
+function load_jobs(bool $force = false): array {
+    $d = load_cached('app_get_jobs', 'future', 'jobs', $force);
+    $us = current_region() === 'us';
+    $usOnly = ['United States', 'Europe and United States'];
+    $fit = function ($r) use ($us, $usOnly) {
+        $reg = (string)($r['region'] ?? 'Global');
+        $isUs = in_array($reg, $usOnly, true);
+        return $us ? ($isUs || $reg === 'Global') : !$isUs;
+    };
+    foreach (['future', 'hot', 'skills', 'stats'] as $k) { $d[$k] = array_values(array_filter($d[$k] ?? [], $fit)); }
+    return $d;
+}
+
+/** Schemes, regulations and milestones for the active edition. */
+function load_policy(bool $force = false): array {
+    $d = load_cached('app_get_policy', 'schemes', 'policy', $force);
+    $d['schemes'] = region_rows($d['schemes'] ?? []);
+    $d['regulations'] = region_rows($d['regulations'] ?? []);
+    $slugs = [];
+    foreach ($d['regulations'] as $r) { $slugs[$r['slug']] = true; }
+    $d['milestones'] = array_values(array_filter($d['milestones'] ?? [], fn($m) => isset($slugs[$m['reg_slug'] ?? ''])));
+    return $d;
+}
+
+function load_funding(bool $force = false): array {
+    $d = load_cached('app_get_funding', 'deals', 'funding', $force);
+    $d['deals'] = region_rows($d['deals'] ?? []);
+    return $d;
+}
+
+/** Programs for the active edition, plus the ones open to startups anywhere. */
+function load_opportunities(bool $force = false): array {
+    $d = load_cached('app_get_funding_sources', 'sources', 'opportunities', $force);
+    $d['sources'] = region_rows($d['sources'] ?? [], 'country', true);
+    return $d;
+}

@@ -9,8 +9,8 @@ try {
     $P = load_policy(isset($_GET['refresh']));
 } catch (Throwable $e) {
     http_response_code(503);
-    page_head('Government schemes', 'schemes.php', []);
-    echo '<section class="empty"><h1>Schemes are unavailable</h1><p>Please try again in a moment.</p></section>';
+    page_head(region_cfg()['code'] === 'us' ? 'Government programs' : 'Government schemes', 'schemes.php', []);
+    echo '<section class="empty"><h1>' . h(region_cfg()['Noun']) . ' are unavailable</h1><p>Please try again in a moment.</p></section>';
     page_foot([]);
     exit;
 }
@@ -20,8 +20,13 @@ $central = array_values(array_filter($all, fn($s) => ($s['level'] ?? 'Central') 
 $stateSchemes = array_values(array_filter($all, fn($s) => ($s['level'] ?? '') === 'State' && !empty($s['state'])));
 usort($stateSchemes, fn($a, $b) => [$a['state'], $a['category'], $a['name']] <=> [$b['state'], $b['category'], $b['name']]);
 
-$aud = ['startup' => 'Startups', 'msme' => 'MSMEs', 'individual' => 'Individuals', 'farmer' => 'Farmers', 'women' => 'Women',
-        'student' => 'Students', 'worker' => 'Workers', 'manufacturer' => 'Manufacturers', 'exporter' => 'Exporters', 'sc_st' => 'SC/ST'];
+$rc = region_cfg();
+$isUs = $rc['code'] === 'us';
+$aud = ['startup' => 'Startups', 'msme' => $isUs ? 'Small businesses' : 'MSMEs', 'individual' => 'Individuals', 'farmer' => 'Farmers', 'women' => 'Women',
+        'student' => 'Students', 'worker' => 'Workers', 'manufacturer' => 'Manufacturers', 'exporter' => 'Exporters', 'sc_st' => 'SC/ST',
+        'veteran' => 'Veterans', 'minority' => 'Minority-owned', 'rural' => 'Rural'];
+$audChips = $isUs ? ['startup', 'msme', 'women', 'veteran', 'minority', 'rural', 'manufacturer', 'exporter', 'student', 'worker']
+                  : ['startup', 'msme', 'individual', 'women', 'farmer', 'student', 'worker', 'manufacturer', 'sc_st'];
 $statusLbl = ['active' => 'Active', 'new' => 'New', 'revamped' => 'Updated', 'closing' => 'Closing soon', 'closed' => 'Closed'];
 $conf = ['high' => 'Verified', 'medium' => 'Partly verified', 'low' => 'Unverified'];
 
@@ -39,16 +44,16 @@ $scoped = array_values(array_filter($stateSchemes, $inScope));
 
 if ($tab === 'state') {
     $n1 = count($scoped); $n2 = count($coveredStates); $n3 = count(array_filter($scoped, $isNew));
-    $l1 = $cur !== '' ? 'Schemes for ' . $curName : 'State schemes listed';
-    $l2 = 'States and UTs covered of ' . count($regions); $l3 = 'New or recently updated';
+    $l1 = $cur !== '' ? $rc['Noun'] . ' for ' . $curName : 'State ' . $rc['noun'] . ' listed';
+    $l2 = $rc['unitShort'] . ' covered of ' . count($regions); $l3 = 'New or recently updated';
 } else {
     $n1 = count($central); $n2 = count(array_filter($central, $forBiz)); $n3 = count(array_filter($central, $isNew));
-    $l1 = 'Central schemes listed'; $l2 = 'For startups and MSMEs'; $l3 = 'New or recently updated';
+    $l1 = $rc['central'] . ' ' . $rc['noun'] . ' listed'; $l2 = 'For startups and ' . $rc['bizWord']; $l3 = 'New or recently updated';
 }
 
 $extra = [];
-foreach ($central as $s) { $extra[] = ['k' => 'Schemes', 't' => (string)$s['name'], 's' => (string)$s['category'], 'h' => 'schemes.php#' . $s['slug']]; }
-foreach ($stateSchemes as $s) { $extra[] = ['k' => 'State schemes', 't' => (string)$s['name'], 's' => $s['state'] . ' · ' . $s['category'], 'h' => 'schemes.php#' . $s['slug']]; }
+foreach ($central as $s) { $extra[] = ['k' => $rc['Noun'], 't' => (string)$s['name'], 's' => (string)$s['category'], 'h' => 'schemes.php#' . $s['slug']]; }
+foreach ($stateSchemes as $s) { $extra[] = ['k' => 'State ' . $rc['noun'], 't' => (string)$s['name'], 's' => $s['state'] . ' · ' . $s['category'], 'h' => 'schemes.php#' . $s['slug']]; }
 
 /** One scheme tile plus its detail sheet. */
 function scheme_tile(array $s, bool $isState, array $aud, array $statusLbl, array $conf, callable $isNew): void {
@@ -74,7 +79,7 @@ function scheme_tile(array $s, bool $isState, array $aud, array $statusLbl, arra
         <div><dt>How to apply</dt><dd><?= h((string)$s['how_to_apply']) ?><?php if ($portal): ?><br><a class="btn sm" style="margin-top:12px" href="<?= h($portal) ?>" target="_blank" rel="noopener noreferrer">Open official portal</a><?php endif; ?></dd></div>
         <?php if (!empty($s['outlay'])): ?><div><dt>Outlay</dt><dd><?= h($s['outlay']) ?></dd></div><?php endif; ?>
         <?php if ($isState): ?><div><dt>State</dt><dd><?= h($stateName) ?></dd></div><?php endif; ?>
-        <div><dt><?= $isState ? 'Department' : 'Ministry' ?></dt><dd><?= h((string)$s['ministry']) ?></dd></div>
+        <div><dt><?= $isState ? 'Department' : h(region_cfg()['dept']) ?></dt><dd><?= h((string)$s['ministry']) ?></dd></div>
         <div><dt>For</dt><dd><?= h(implode(', ', $audNames)) ?></dd></div>
         <div><dt>Launched</dt><dd><?= h((string)($s['launched'] ?? 'n/a')) ?> · <?= h($statusLbl[$s['status']] ?? $s['status']) ?></dd></div>
         <?php if ($source): ?><div><dt>Reference</dt><dd><a href="<?= h($source) ?>" target="_blank" rel="noopener noreferrer">Where this was checked</a></dd></div><?php endif; ?>
@@ -84,19 +89,19 @@ function scheme_tile(array $s, bool $isState, array $aud, array $statusLbl, arra
   </li>
 <?php }
 
-page_head('Government schemes', 'schemes.php', ['_extra' => $extra]);
+page_head($isUs ? 'Government programs' : 'Government schemes', 'schemes.php', ['_extra' => $extra]);
 stale_notice($P);
 ?>
 <div id="sroot" hidden
-     data-tab="<?= h($tab) ?>" data-state="<?= h($cur) ?>" data-regions="<?= (int)count($regions) ?>"
+     data-tab="<?= h($tab) ?>" data-state="<?= h($cur) ?>" data-central="<?= h($rc['central']) ?>" data-noun="<?= h($rc['noun']) ?>" data-unit="<?= h($rc['unitShort']) ?>" data-where="<?= h($rc['everywhere']) ?>" data-biz="<?= h($rc['bizWord']) ?>" data-regions="<?= (int)count($regions) ?>"
      data-covered="<?= (int)count($coveredStates) ?>"
      data-cats-central="<?= h(json_encode($catsOf($central), JSON_UNESCAPED_UNICODE)) ?>"
      data-cats-state="<?= h(json_encode($catsOf($stateSchemes), JSON_UNESCAPED_UNICODE)) ?>"
      data-names="<?= h(json_encode($regions, JSON_UNESCAPED_UNICODE)) ?>"></div>
 
 <div class="stabs">
-  <div class="seg" role="tablist" aria-label="Scheme level" id="stabs">
-    <button type="button" role="tab" data-tab="central" aria-pressed="<?= $tab === 'central' ? 'true' : 'false' ?>">Central <i><?= count($central) ?></i></button>
+  <div class="seg" role="tablist" aria-label="Level" id="stabs">
+    <button type="button" role="tab" data-tab="central" aria-pressed="<?= $tab === 'central' ? 'true' : 'false' ?>"><?= h($rc['central']) ?> <i><?= count($central) ?></i></button>
     <button type="button" role="tab" data-tab="state" aria-pressed="<?= $tab === 'state' ? 'true' : 'false' ?>">State <i id="stcount"><?= count($scoped) ?></i></button>
   </div>
   <p class="sctx" id="sctx"></p>
@@ -109,17 +114,17 @@ stale_notice($P);
 </section>
 
 <div class="toolbar">
-  <label class="field search"><?= icon('search') ?><input id="sq" type="search" placeholder="Search schemes, benefits, departments" aria-label="Search schemes"></label>
+  <label class="field search"><?= icon('search') ?><input id="sq" type="search" placeholder="Search <?= h($rc['noun']) ?>, benefits, <?= $isUs ? 'agencies' : 'departments' ?>" aria-label="Search <?= h($rc['noun']) ?>"></label>
   <label class="field select"><select id="scat" aria-label="Category"><option value="">All categories</option></select></label>
 </div>
 <div class="seg chips" role="group" aria-label="Who it is for" id="saud">
   <button type="button" data-aud="" aria-pressed="true">Everyone</button>
-  <?php foreach (['startup', 'msme', 'individual', 'women', 'farmer', 'student', 'worker', 'manufacturer', 'sc_st'] as $a): ?>
+  <?php foreach ($audChips as $a): ?>
   <button type="button" data-aud="<?= h($a) ?>" aria-pressed="false"><?= h($aud[$a]) ?></button>
   <?php endforeach; ?>
   <button type="button" data-aud="_new" aria-pressed="false">New or updated</button>
 </div>
-<p class="count"><span id="scount">0</span> schemes</p>
+<p class="count"><span id="scount">0</span> <?= h($rc['noun']) ?></p>
 
 <ul class="tiles" id="slist" data-level="central"<?= $tab === 'central' ? '' : ' hidden' ?>>
 <?php foreach ($central as $s) { scheme_tile($s, false, $aud, $statusLbl, $conf, $isNew); } ?>
@@ -130,17 +135,18 @@ stale_notice($P);
 
 <section class="empty inline" id="snone" hidden><h1>No matches</h1><p>Try another audience or category.</p></section>
 <section class="empty inline" id="stnone" hidden>
-  <h1>No schemes added for <span id="stnone-name">this state</span> yet</h1>
-  <p>State coverage grows every month. Central schemes still apply there, so start with those.</p>
-  <button type="button" class="btn" data-tab-go="central">See central schemes</button>
+  <h1>No <?= h($rc['noun']) ?> added for <span id="stnone-name">this state</span> yet</h1>
+  <p>State coverage grows over time. <?= h($rc['central']) ?> <?= h($rc['noun']) ?> still apply there, so start with those.</p>
+  <button type="button" class="btn" data-tab-go="central">See <?= h($rc['centralLow']) ?> <?= h($rc['noun']) ?></button>
 </section>
 
-<p class="muted small jnote">Central schemes apply across India. State schemes are listed for <?= count($coveredStates) ?> of <?= count($regions) ?> states and union territories so far, and more are added each month. Choose your state from the header to see its schemes. Checked monthly against official portals and policy documents. Last refreshed <?= h(date('j M Y', strtotime((string)($P['refreshed_at'] ?? 'now')))) ?>.</p>
+<p class="muted small jnote"><?= h($rc['central']) ?> <?= h($rc['noun']) ?> apply <?= h($rc['everywhere']) ?>. State <?= h($rc['noun']) ?> are listed for <?= count($coveredStates) ?> of <?= count($regions) ?> <?= h($rc['stateUnit']) ?> so far, and more are added over time. Choose your state from the header to see its <?= h($rc['noun']) ?>. Checked monthly against <?= h($rc['portalSrc']) ?>. Last refreshed <?= h(date('j M Y', strtotime((string)($P['refreshed_at'] ?? 'now')))) ?>.</p>
 
 <script>
 (function () {
   var root = document.getElementById('sroot'), D = root.dataset;
   var q = document.getElementById('sq'), cat = document.getElementById('scat'), seg = document.getElementById('saud'), tabs = document.getElementById('stabs');
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
   var lists = { central: document.getElementById('slist'), state: document.getElementById('stlist') };
   var cnt = document.getElementById('scount'), none = document.getElementById('snone'), stnone = document.getElementById('stnone');
   var ctx = document.getElementById('sctx'), stc = document.getElementById('stcount');
@@ -178,12 +184,12 @@ stale_notice($P);
     tabs.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.tab === tab ? 'true' : 'false'); });
     stc.textContent = lists.state.querySelectorAll(sel ? ':scope > li[data-state="' + sel + '"]' : ':scope > li').length;
     if (tab === 'state') {
-      setStat(1, scope, sel ? 'Schemes for ' + (names[sel] || '') : 'State schemes listed');
-      setStat(2, D.covered, 'States and UTs covered of ' + D.regions); setStat(3, scopeNew);
+      setStat(1, scope, sel ? cap(D.noun) + ' for ' + (names[sel] || '') : 'State ' + D.noun + ' listed');
+      setStat(2, D.covered, D.unit + ' covered of ' + D.regions); setStat(3, scopeNew);
       ctx.innerHTML = sel ? 'Showing <b>' + (names[sel] || '') + '</b>. Change your state from the header.' : 'Showing every state. Pick your state in the header to narrow this down.';
     } else {
-      setStat(1, scope, 'Central schemes listed'); setStat(2, scopeBiz, 'For startups and MSMEs'); setStat(3, scopeNew);
-      ctx.innerHTML = 'Applies across India' + (sel ? '. <b>' + (names[sel] || '') + '</b> has its own schemes in the State tab.' : '.');
+      setStat(1, scope, D.central + ' ' + D.noun + ' listed'); setStat(2, scopeBiz, 'For startups and ' + D.biz); setStat(3, scopeNew);
+      ctx.innerHTML = 'Applies ' + D.where + (sel ? '. <b>' + (names[sel] || '') + '</b> has its own ' + D.noun + ' in the State tab.' : '.');
     }
   }
   function show(next, keep) {

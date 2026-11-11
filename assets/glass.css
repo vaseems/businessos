@@ -287,3 +287,14 @@ body.login{background:var(--canvas)}
   .orow .row-btn{grid-template-columns:40px minmax(0,1fr) auto;gap:12px}
   .ocheque{display:none}
 }
+
+/* Region switch (India / US) */
+.regsw{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:var(--pane);border:1px solid var(--pane-edge);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.regsw button{min-height:30px;padding:0 13px;border:0;border-radius:999px;background:none;color:var(--ink2);font-weight:600;font-size:13px;letter-spacing:.01em;cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.regsw button:hover{color:var(--ink)}
+.regsw button[aria-pressed=true]{background:var(--grad);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--c2) 40%,transparent)}
+@media (max-width:760px){
+  .regsw button{padding:0 10px;min-height:28px;font-size:12px}
+  .crumb{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .statepick select{max-width:84px}
+}

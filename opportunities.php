@@ -166,9 +166,9 @@ stale_notice($O);
         <div><dt>Status</dt><dd><b><?= h($statusLabel[$s['_st']]) ?></b><?= $line ? ' · ' . h($line) : '' ?>. <?= h($statusHelp[$s['_st']] ?? '') ?><?= !empty($s['window_note']) ? ' ' . h($s['window_note']) : '' ?></dd></div>
         <div><dt>Stage</dt><dd><?= h($stageText) ?></dd></div>
         <?php if (!empty($s['sectors'])): ?><div><dt>Sectors</dt><dd><?= h($s['sectors']) ?></dd></div><?php endif; ?>
-        <?php if (!empty($s['cheque_text'])): ?><div><dt>Cheque or value</dt><dd><?= h($s['cheque_text']) ?></dd></div><?php endif; ?>
+        <?php if (!empty($s['cheque_text'])): ?><div><dt><?= region_cfg()['code'] === 'us' ? 'Check size or value' : 'Cheque or value' ?></dt><dd><?= h($s['cheque_text']) ?></dd></div><?php endif; ?>
         <?php if (!empty($s['equity_note'])): ?><div><dt>Terms</dt><dd><?= h($s['equity_note']) ?></dd></div><?php endif; ?>
-        <div><dt>Where</dt><dd><?= h((string)($s['geography'] ?? 'India')) ?><?= $stSlug ? ' · only for startups in ' . h((string)$s['hq_state']) : '' ?></dd></div>
+        <div><dt>Where</dt><dd><?= h((string)($s['geography'] ?? region_cfg()['name'])) ?><?= $stSlug ? ' · only for startups in ' . h((string)$s['hq_state']) : '' ?></dd></div>
         <?php if (!empty($s['hq_city']) || !empty($s['hq_state'])): ?><div><dt>Based in</dt><dd><?= h(trim(($s['hq_city'] ?? '') . ', ' . ($s['hq_state'] ?? ''), ', ')) ?></dd></div><?php endif; ?>
         <?php if (!empty($s['how_to_apply'])): ?><div><dt>How to apply</dt><dd><?= h($s['how_to_apply']) ?><?php if ($apply): ?> <a href="<?= h($apply) ?>" target="_blank" rel="noopener noreferrer">Official page</a><?php endif; ?></dd></div>
         <?php elseif ($apply): ?><div><dt>Official page</dt><dd><a href="<?= h($apply) ?>" target="_blank" rel="noopener noreferrer"><?= h($apply) ?></a></dd></div><?php endif; ?>
@@ -180,7 +180,7 @@ stale_notice($O);
 <?php endforeach; ?>
 </ul>
 <section class="empty" id="onone" hidden><h1>No matches</h1><p id="onone-msg">Try another type or stage.</p></section>
-<p class="muted small jnote">Funds, programs, grants and perks open to startups in India, from official pages and reputable reports. Deadlines, cheque sizes and terms change often, so confirm on the official page before you apply. Programs that take equity are marked in the detail view. Reviewed regularly<?= $checkedMax ? ', last on ' . h($fmtDate((string)$checkedMax)) : '' ?>. For information only, not investment advice.</p>
+<p class="muted small jnote">Funds, programs, grants and perks open to startups in <?= h(region_cfg()['name']) ?>, from official pages and reputable reports. Deadlines, <?= region_cfg()['code'] === 'us' ? 'check' : 'cheque' ?> sizes and terms change often, so confirm on the official page before you apply. Programs that take equity are marked in the detail view. Reviewed regularly<?= $checkedMax ? ', last on ' . h($fmtDate((string)$checkedMax)) : '' ?>. For information only, not investment advice.</p>
 
 <script>
 (function () {
@@ -212,7 +212,7 @@ stale_notice($O);
     });
     cnt.textContent = n;
     none.hidden = n > 0;
-    if (st.mine && n === 0) msg.textContent = 'Nothing state-specific for ' + (names[st.state] || 'this state') + ' in this view. Try Everything, or switch off the state filter to see programs open to startups across India.';
+    if (st.mine && n === 0) msg.textContent = 'Nothing state-specific for ' + (names[st.state] || 'this state') + ' in this view. Try Everything, or switch off the state filter to see programs open to startups across the country.';
     else if (st.when !== 'all' && n === 0) msg.textContent = 'Nothing in this view. Try Everything, another type or a different stage.';
     else msg.textContent = 'Try another type or stage.';
   }

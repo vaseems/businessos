@@ -14,11 +14,11 @@ stale_notice($d);
 ?>
 <div class="toolbar">
   <label class="field search"><?= icon('search') ?><input id="q" type="search" placeholder="Filter startups" aria-label="Filter startups"></label>
-  <div class="seg" role="group" aria-label="Region" id="regseg">
+  <?php if (region_cfg()['code'] !== 'us'): ?><div class="seg" role="group" aria-label="Region" id="regseg">
     <button type="button" data-region="" aria-pressed="true">All</button>
     <button type="button" data-region="India" aria-pressed="false">India</button>
     <button type="button" data-region="Global" aria-pressed="false">Global</button>
-  </div>
+  </div><?php endif; ?>
   <label class="field select"><select id="sector" aria-label="Sector"><option value="">All sectors</option>
     <?php foreach ($sectors as $s): ?><option><?= h($s) ?></option><?php endforeach; ?></select></label>
   <label class="field select"><select id="sortsel" aria-label="Sort by">
@@ -36,7 +36,7 @@ stale_notice($d);
     } ?>
   <li class="tile" data-slug="<?= h($s['slug']) ?>" data-search="<?= h($search) ?>" data-region="<?= h($s['region']) ?>" data-sector="<?= h($s['sector']) ?>" data-funding="<?= h($s['last_round_amount_usd_m'] ?? '') ?>" data-valuation="<?= h($s['valuation_usd_m'] ?? '') ?>" data-name="<?= h(strtolower($s['name'])) ?>">
     <button type="button" class="tile-btn" data-open>
-      <span class="tile-top"><b><?= h($s['name']) ?></b><span class="tag"><?= h($s['region']) ?></span></span>
+      <span class="tile-top"><b><?= h($s['name']) ?></b><span class="tag"><?= h(region_cfg()['code'] === 'us' ? (($s['hq_city'] ?? '') ?: 'US') : $s['region']) ?></span></span>
       <span class="tile-sub"><?= h($s['one_liner'] ?: $s['sector']) ?></span>
       <span class="tile-fig"><?= money($s['last_round_amount_usd_m']) ?><small><?= h($s['last_round'] ?: 'No round disclosed') ?></small></span>
       <span class="tile-foot"><span><?= $s['valuation_usd_m'] !== null ? h(money($s['valuation_usd_m'])) . ' valuation' : 'Valuation not disclosed' ?></span><span class="conf c-<?= h($s['confidence']) ?>"><i></i><?= h($s['confidence']) ?></span></span>
@@ -53,7 +53,7 @@ stale_notice($d);
         <?php if ($s['valuation_usd_m'] !== null): ?><div><dt>Valuation</dt><dd><?= h(money($s['valuation_usd_m'])) ?> (<?= h($s['valuation_basis']) ?>)</dd></div><?php endif; ?>
         <?php if (!empty($s['traction_metric'])): ?><div><dt>Traction</dt><dd><?= h(num($s['traction_value'])) ?> · <?= h($s['traction_metric']) ?><br><span class="muted"><?= h($s['traction_metric_type']) ?>, as of <?= h($s['traction_as_of']) ?></span></dd></div><?php endif; ?>
         <?php if (!empty($s['named_clients'])): ?><div><dt>Named clients</dt><dd><?= h($s['named_clients']) ?></dd></div><?php endif; ?>
-        <?php if (!empty($s['india_gap'])): ?><div><dt>India gap</dt><dd><?= h($s['india_gap']) ?></dd></div><?php endif; ?>
+        <?php if (!empty($s['india_gap']) && region_cfg()['code'] !== 'us'): ?><div><dt>India gap</dt><dd><?= h($s['india_gap']) ?></dd></div><?php endif; ?>
         <?php if ($s['copyability'] !== null): ?><div><dt>Copyability</dt><dd><?= (int)$s['copyability'] ?> of 5 <span class="muted">(analyst judgment)</span></dd></div><?php endif; ?>
         <?php if (!empty($s['regulatory_dependency'])): ?><div><dt>Regulation</dt><dd><?= h($s['regulatory_dependency']) ?></dd></div><?php endif; ?>
         <?php if (!empty($s['key_risks'])): ?><div><dt>Risks</dt><dd><?= h($s['key_risks']) ?></dd></div><?php endif; ?>

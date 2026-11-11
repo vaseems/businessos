@@ -28,7 +28,7 @@ $brand = 'BusinessOS';
 <meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light dark">
 <title>Sign in · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=6">
+<link rel="stylesheet" href="assets/glass.css?v=7">
 </head><body class="login">
 <div id="particles" data-count="55" aria-hidden="true"></div>
 <form method="post" class="login-card">

@@ -182,7 +182,7 @@ stale_notice($F);
 <?php endforeach; ?>
 </ul>
 <section class="empty" id="fnone" hidden><h1>No matches</h1><p id="fnonemsg">Try a wider period or another sector.</p></section>
-<p class="muted small jnote">Funding rounds of about US$0.5 million and above reported in weekly roundups of Indian startup funding. Undisclosed amounts are not listed. Headquarters are known for <?= (int)$hqKnown ?> of <?= (int)$totalDeals ?> rounds so far and are filled in as they are checked. Updated weekly<?= $updated ? ', last on ' . h(date('j M Y', strtotime((string)$updated))) : '' ?>. For information only, not investment advice.</p>
+<p class="muted small jnote"><?= region_cfg()['code'] === 'us' ? 'The largest US startup funding rounds each week, taken from public weekly roundups. Smaller rounds are not listed, so weekly totals understate all US funding.' : 'Funding rounds of about US$0.5 million and above reported in weekly roundups of Indian startup funding. Undisclosed amounts are not listed.' ?> Headquarters are known for <?= (int)$hqKnown ?> of <?= (int)$totalDeals ?> rounds so far and are filled in as they are checked. Updated weekly<?= $updated ? ', last on ' . h(date('j M Y', strtotime((string)$updated))) : '' ?>. For information only, not investment advice.</p>
 
 <script>
 (function () {

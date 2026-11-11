@@ -17,7 +17,9 @@ $topIdea = $ideas[0] ?? null;
 $names = [];
 foreach ($ideas as $i) { $names[$i['slug']] = $i['name']; }
 
-$factors = ['critical' => 'Critical', 'demand' => 'Demand', 'ease' => 'Ease to build', 'india_edge' => 'India edge'];
+$rc = region_cfg();
+$isUs = $rc['code'] === 'us';
+$factors = ['critical' => 'Critical', 'demand' => 'Demand', 'ease' => 'Ease to build', 'india_edge' => $rc['edge']];
 $fav = [];
 foreach ($factors as $k => $label) {
     $v = array_map(fn($i) => (int)$i[$k], $ideas);
@@ -31,10 +33,11 @@ $bmax = max(1, max($buckets));
 
 $sec = [];
 $filled = ['Valuation' => 0, 'Traction number' => 0, 'Named clients' => 0, 'India-gap note' => 0];
+$ideasVisible = $ideas;
 foreach ($startups as $s) {
     if ($s['last_round_amount_usd_m'] !== null) {
         $k = $s['sector'] ?: 'Other';
-        $r = ($s['region'] ?? '') === 'India' ? 'in' : 'gl';
+        $r = ($isUs || ($s['region'] ?? '') === 'India') ? 'in' : 'gl';
         $sec[$k][$r] = ($sec[$k][$r] ?? 0) + (float)$s['last_round_amount_usd_m'];
     }
     if ($s['valuation_usd_m'] !== null) $filled['Valuation']++;
@@ -113,12 +116,12 @@ stale_notice($d);
 
 <div class="split">
   <section class="panel">
-    <div class="panel-head"><h2>Funding by sector</h2><span class="legend"><i class="k-in"></i>India <i class="k-gl"></i>Global</span></div>
+    <div class="panel-head"><h2>Funding by sector</h2><span class="legend"><?php if ($isUs): ?><i class="k-in"></i>United States<?php else: ?><i class="k-in"></i>India <i class="k-gl"></i>Global<?php endif; ?></span></div>
     <?php if (!$sec): ?><p class="muted">No funding rounds yet.</p><?php endif; ?>
     <ul class="sectors">
       <?php foreach ($sec as $name => $v): $in = $v['in'] ?? 0; $gl = $v['gl'] ?? 0; ?>
         <li><span class="sn"><?= h($name) ?></span>
-          <span class="sbar" title="India <?= h(money($in)) ?>, Global <?= h(money($gl)) ?>"><i class="k-in" style="--w:<?= round(100 * $in / $smax, 1) ?>%"></i><i class="k-gl" style="--w:<?= round(100 * $gl / $smax, 1) ?>%"></i></span>
+          <span class="sbar" title="<?= $isUs ? 'United States ' . h(money($in)) : 'India ' . h(money($in)) . ', Global ' . h(money($gl)) ?>"><i class="k-in" style="--w:<?= round(100 * $in / $smax, 1) ?>%"></i><i class="k-gl" style="--w:<?= round(100 * $gl / $smax, 1) ?>%"></i></span>
           <span class="sv"><?= money($in + $gl) ?></span></li>
       <?php endforeach; ?>
     </ul>
