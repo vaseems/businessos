@@ -212,3 +212,25 @@ body.login{background:var(--canvas)}
   .tl-item{grid-template-columns:86px 1fr}
   .toolbar .field.select{min-width:0;flex:1 1 100%}
 }
+
+/* Global state picker and scheme tabs */
+.statepick{display:flex;align-items:center;gap:8px;min-height:38px;padding:0 6px 0 12px;border-radius:999px;background:var(--pane);border:1px solid var(--pane-edge);box-shadow:0 1px 0 rgba(255,255,255,.5) inset;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:var(--ink2);transition:border-color .2s,box-shadow .2s}
+.statepick .ic{width:18px;height:18px;flex:none;color:var(--c3)}
+.statepick select{appearance:none;-webkit-appearance:none;border:0;background:none;outline:0;height:36px;padding:0 22px 0 0;max-width:170px;color:var(--ink);font-weight:550;cursor:pointer;text-overflow:ellipsis;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 9px) 52%,calc(100% - 4px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.statepick:hover,.statepick:focus-within{border-color:var(--c2);box-shadow:0 0 0 3px color-mix(in srgb,var(--c2) 18%,transparent)}
+.statepick.on{border-color:color-mix(in srgb,var(--c3) 60%,transparent)}
+.stabs{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px}
+.stabs .seg button{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 18px;font-weight:600}
+.stabs .seg button i{font-style:normal;font-size:12px;font-weight:650;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--c2) 16%,transparent);color:var(--ink)}
+.stabs .seg button[aria-pressed=true] i{background:rgba(255,255,255,.25);color:#fff}
+.sctx{color:var(--ink2);font-size:13.5px}
+.sctx b{color:var(--ink);font-weight:600}
+.tile-state{font-weight:650;color:var(--ink)}
+.empty.inline{margin-top:18px}
+.empty.inline .btn{margin-top:14px}
+@media (max-width:760px){
+  .statepick{padding-left:10px}
+  .statepick select{max-width:104px}
+  .bar-actions{gap:6px}
+  .stabs .seg{width:100%}.stabs .seg button{flex:1;justify-content:center}
+}

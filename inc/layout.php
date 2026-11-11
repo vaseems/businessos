@@ -1,8 +1,37 @@
 <?php
 declare(strict_types=1);
 
+/** States and union territories for the global state picker. */
+function india_regions(): array {
+    return [
+        'States' => ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+                     'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+                     'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'],
+        'Union territories' => ['Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
+                                'Ladakh', 'Lakshadweep', 'Puducherry'],
+    ];
+}
+
+function state_slug(string $name): string {
+    return trim((string)preg_replace('/[^a-z0-9]+/', '-', strtolower($name)), '-');
+}
+
+/** Slug => name for every state and union territory. */
+function state_map(): array {
+    $m = [];
+    foreach (india_regions() as $names) { foreach ($names as $n) { $m[state_slug($n)] = $n; } }
+    return $m;
+}
+
+/** The state chosen in the header, or '' for all of India. Validated against the known list. */
+function current_state(): string {
+    $c = (string)($_COOKIE['bos_state'] ?? '');
+    return isset(state_map()[$c]) ? $c : '';
+}
+
 function icon(string $name): string {
     $p = [
+        'pin'      => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
         'overview' => '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 8h6V4h-6z"/>',
         'ideas'    => '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
         'startups' => '<path d="M5 19V9l7-5 7 5v10M9 19v-6h6v6"/>',
@@ -70,7 +99,7 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="color-scheme" content="light dark">
 <title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=2">
+<link rel="stylesheet" href="assets/glass.css?v=3">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>
 <body>
@@ -92,6 +121,18 @@ function page_head(string $title, string $active, array $d = []): void {
     <header class="bar">
       <h2 class="crumb"><?= h($title) ?></h2>
       <div class="bar-actions">
+        <label class="statepick" title="Your state">
+          <?= icon('pin') ?>
+          <select id="gstate" aria-label="Your state">
+            <option value="">All India</option>
+            <?php $cs = current_state(); foreach (india_regions() as $grp => $names): ?>
+            <optgroup label="<?= h($grp) ?>">
+              <?php foreach ($names as $n): $sl = state_slug($n); ?><option value="<?= h($sl) ?>"<?= $sl === $cs ? ' selected' : '' ?>><?= h($n) ?></option>
+              <?php endforeach; ?>
+            </optgroup>
+            <?php endforeach; ?>
+          </select>
+        </label>
         <button type="button" class="cmd" data-palette aria-label="Search or jump to"><?= icon('search') ?><span>Search or jump to</span><kbd>⌘K</kbd></button>
         <?php if ($active === 'index.php'): ?><a class="iconbtn" href="index.php?refresh=1" title="Refresh data" aria-label="Refresh data"><?= icon('refresh') ?></a><?php endif; ?>
       </div>
@@ -124,7 +165,7 @@ function page_foot(array $d = [], array $scripts = []): void { ?>
 <script id="palette-data" type="application/json"><?= palette_json($d) ?></script>
 <?php foreach ($scripts as $s): ?><script src="<?= h($s) ?>"></script>
 <?php endforeach; ?>
-<script src="assets/app.js?v=3"></script>
+<script src="assets/app.js?v=4"></script>
 </body>
 </html>
 <?php

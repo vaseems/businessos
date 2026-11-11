@@ -116,6 +116,21 @@
     resort();
   }
 
+  // Global state picker: remembered in a cookie so every page (and the server) can read it.
+  var gstate = $('#gstate');
+  if (gstate) {
+    var pick = gstate.closest('.statepick');
+    var paint = function () { if (pick) pick.classList.toggle('on', !!gstate.value); };
+    paint();
+    gstate.addEventListener('change', function () {
+      try {
+        document.cookie = 'bos_state=' + encodeURIComponent(gstate.value) + '; path=/; max-age=31536000; samesite=lax' + (location.protocol === 'https:' ? '; secure' : '');
+      } catch (e) {}
+      paint();
+      document.dispatchEvent(new CustomEvent('bos:state', { detail: { slug: gstate.value, name: gstate.value ? gstate.options[gstate.selectedIndex].text : '' } }));
+    });
+  }
+
   // Command palette (Cmd/Ctrl+K)
   var pal = $('#palette'), pq = $('#pal-q'), pl = $('#pal-list'), data = [], sel = 0, shown = [];
   try { data = JSON.parse($('#palette-data').textContent); } catch (e) {}
