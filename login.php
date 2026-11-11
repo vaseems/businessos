@@ -40,6 +40,7 @@ $brand = 'BusinessOS';
   <label class="field"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password" autofocus required></label>
   <button type="submit" class="btn full">Sign in</button>
 </form>
+<footer class="foot login-foot">&copy; 2026 Gradient Technology Labs LLP. All rights reserved.</footer>
 <script src="assets/vendor/tsparticles.slim.bundle.min.js"></script>
 <script src="assets/particles.js?v=2"></script>
 </body></html>

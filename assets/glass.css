@@ -60,6 +60,7 @@ body::after{width:55vmax;height:55vmax;right:-18vmax;bottom:-24vmax;background:r
 .nav a:nth-child(1) .ic{background:var(--grad-cool)}
 .nav a:nth-child(2) .ic{background:linear-gradient(135deg,var(--c2),var(--c3))}
 .nav a:nth-child(3) .ic{background:var(--grad-warm)}
+.nav a:nth-child(4) .ic{background:var(--grad-fresh)}
 .nav a[aria-current=page]{background:var(--pane-hi);box-shadow:var(--pane-shadow);color:var(--ink)}
 .nav a[aria-current=page] .ic{color:#fff}
 .signout button{border-radius:14px}.signout button:hover{background:color-mix(in srgb,var(--c3) 14%,transparent);color:var(--c3)}
@@ -125,3 +126,36 @@ body.login{background:var(--canvas)}
 }
 @media (prefers-reduced-motion:reduce){body::before,body::after,.mark{animation:none!important}}
 @supports not (backdrop-filter:blur(1px)){.panel,.rows,.stats,.tile-btn,.side,.bar{background:var(--pane-hi)}}
+
+/* Jobs page and footer */
+[hidden]{display:none!important}
+.foot{padding:26px clamp(16px,3vw,40px) 30px;color:var(--ink3);font-size:13px;text-align:center}
+.login-foot{position:fixed;left:0;right:0;bottom:10px;z-index:1;padding:0}
+.rkb{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:12px;background:var(--grad);color:#fff;font-weight:700;font-size:14px;box-shadow:0 6px 14px color-mix(in srgb,var(--c2) 30%,transparent)}
+.rkb.none{background:var(--track);color:var(--ink3);box-shadow:none}
+.rkb.sm{width:28px;height:28px;border-radius:9px;font-size:12.5px}
+.jmetric{font-weight:700;font-size:15px;white-space:nowrap;text-align:right}
+.jmetric.pos{color:var(--c5)}.jmetric.neg{color:var(--c3)}
+.jrow .row-btn{grid-template-columns:48px minmax(0,1fr) auto 120px}
+.jgroup .panel-head.sub{margin:22px 4px 12px}.jgroup:first-child .panel-head.sub{margin-top:6px}
+.jgroup .rows{margin-top:0}
+.sheet-h{font-size:15px;font-weight:650;margin:6px 0 12px;letter-spacing:-.01em}
+.skills5{display:grid;gap:8px}
+.skills5 li{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:var(--pane-hi);border:1px solid var(--pane-edge);font-weight:550}
+.skills5 .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;background:var(--grad);color:#fff;font-size:12.5px;font-weight:700;flex:none}
+.skills5 li:nth-child(2) .n{background:var(--grad-warm)}.skills5 li:nth-child(3) .n{background:var(--grad-fresh)}.skills5 li:nth-child(4) .n{background:var(--grad-cool)}.skills5 li:nth-child(5) .n{background:linear-gradient(135deg,var(--c4),var(--c2))}
+.skillgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:start}
+.skillgrid .panel{margin:0!important}
+.skilllist{display:grid;gap:4px}
+.skillrow{display:flex;align-items:center;gap:12px;padding:8px 4px;border-radius:12px}
+.skillrow+.skillrow{border-top:1px solid var(--line2)}
+.sk-main{display:flex;flex-direction:column;min-width:0}.sk-main b{font-weight:600}
+.jnote{margin-top:26px!important;max-width:78ch}
+.jobs-stats{margin-bottom:0}
+@media (max-width:760px){
+  .jrow .row-btn{grid-template-columns:36px minmax(0,1fr) auto;gap:12px}
+  .jrow .glyph{display:none}
+  .foot{padding-bottom:110px}
+  #content{padding-bottom:12px}
+  .skillgrid{grid-template-columns:1fr}
+}

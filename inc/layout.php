@@ -6,6 +6,7 @@ function icon(string $name): string {
         'overview' => '<path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 8h6V4h-6z"/>',
         'ideas'    => '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
         'startups' => '<path d="M5 19V9l7-5 7 5v10M9 19v-6h6v6"/>',
+        'jobs'     => '<rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3.5 13h17"/>',
         'search'   => '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/>',
         'refresh'  => '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
         'out'      => '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
@@ -36,7 +37,11 @@ function palette_json(array $d): string {
         ['k' => 'Pages', 't' => 'Overview', 'h' => 'index.php'],
         ['k' => 'Pages', 't' => 'Ideas', 'h' => 'ideas.php'],
         ['k' => 'Pages', 't' => 'Startups', 'h' => 'startups.php'],
+        ['k' => 'Pages', 't' => 'Jobs and skills', 'h' => 'jobs.php'],
     ];
+    foreach ($d['_jobs_roles'] ?? [] as $r) {
+        $items[] = ['k' => 'Jobs', 't' => (string)$r['t'], 's' => (string)$r['s'], 'h' => 'jobs.php#' . $r['slug']];
+    }
     foreach ($d['ideas'] ?? [] as $i) {
         $items[] = ['k' => 'Ideas', 't' => (string)$i['name'], 's' => 'Score ' . (int)$i['score'], 'h' => 'ideas.php#' . $i['slug']];
     }
@@ -48,7 +53,7 @@ function palette_json(array $d): string {
 
 function page_head(string $title, string $active, array $d = []): void {
     global $CONFIG;
-    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups']];
+    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'jobs.php' => ['Jobs', 'jobs']];
     $brand = 'BusinessOS';
     $last = $d['log'][0]['logged_on'] ?? null;
     ?><!doctype html>
@@ -92,6 +97,7 @@ function page_head(string $title, string $active, array $d = []): void {
 
 function page_foot(array $d = [], array $scripts = []): void { ?>
     </main>
+    <footer class="foot">&copy; 2026 Gradient Technology Labs LLP. All rights reserved.</footer>
   </div>
 </div>
 
@@ -104,7 +110,7 @@ function page_foot(array $d = [], array $scripts = []): void { ?>
 
 <dialog id="palette" aria-label="Search or jump to">
   <div class="pal-card">
-    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="Search ideas, startups, pages" autocomplete="off" spellcheck="false" aria-label="Search"></div>
+    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="Search ideas, startups, jobs, pages" autocomplete="off" spellcheck="false" aria-label="Search"></div>
     <ul id="pal-list" role="listbox"></ul>
     <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
   </div>
