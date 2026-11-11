@@ -59,10 +59,12 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="light dark">
 <title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
-<link rel="stylesheet" href="assets/style.css?v=2">
+<link rel="stylesheet" href="assets/style.css?v=3">
+<link rel="stylesheet" href="assets/glass.css?v=1">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ringgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset=".55" stop-color="#bf5af2"/><stop offset="1" stop-color="#ff375f"/></linearGradient></defs></svg>
 <div class="shell">
   <aside class="side">
     <a class="brand" href="index.php"><span class="mark" aria-hidden="true"></span><span><?= h($brand) ?></span></a>
@@ -71,8 +73,6 @@ function page_head(string $title, string $active, array $d = []): void {
         <a href="<?= h($href) ?>"<?= $active === $href ? ' aria-current="page"' : '' ?>><?= icon($ic) ?><span><?= h($label) ?></span></a>
       <?php endforeach; ?>
     </nav>
-      <p><?= $last ? 'Last update ' . h(date('j M', strtotime((string)$last))) : 'No run recorded yet' ?><br>Next run 7:43 AM IST</p>
-    </div>
     <form method="post" action="logout.php" class="signout">
       <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
       <button type="submit"><?= icon('out') ?><span>Sign out</span></button>

@@ -1,0 +1,127 @@
+/* BusinessOS: glass + liquid layer. Loads after style.css and overrides its surfaces. */
+:root{
+  --c1:#0a84ff;--c2:#bf5af2;--c3:#ff375f;--c4:#ff9f0a;--c5:#30d158;--c6:#64d2ff;
+  --grad:linear-gradient(135deg,var(--c1),var(--c2) 55%,var(--c3));
+  --grad-warm:linear-gradient(135deg,var(--c4),var(--c3));
+  --grad-cool:linear-gradient(135deg,var(--c6),var(--c1));
+  --grad-fresh:linear-gradient(135deg,var(--c5),var(--c6));
+  --canvas:#eef0fb;
+  --pane:rgba(255,255,255,.52);--pane-hi:rgba(255,255,255,.72);--pane-edge:rgba(255,255,255,.7);
+  --pane-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(255,255,255,.25) inset,0 10px 40px rgba(70,60,160,.14);
+  --side:rgba(255,255,255,.45);--glass:rgba(255,255,255,.62);--surface:rgba(255,255,255,.55);
+  --line:rgba(70,60,140,.12);--line2:rgba(70,60,140,.07);--track:rgba(80,70,160,.10);
+  --accent:#0a6cff;--accent2:#a24cf0;
+}
+@media (prefers-color-scheme:dark){:root{
+  --canvas:#07070f;
+  --pane:rgba(30,30,48,.5);--pane-hi:rgba(44,44,68,.62);--pane-edge:rgba(255,255,255,.14);
+  --pane-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 -1px 0 rgba(255,255,255,.03) inset,0 14px 50px rgba(0,0,0,.5);
+  --side:rgba(20,20,34,.5);--glass:rgba(26,26,42,.62);--surface:rgba(30,30,48,.5);
+  --line:rgba(255,255,255,.12);--line2:rgba(255,255,255,.07);--track:rgba(255,255,255,.10);
+  --accent:#4da3ff;--accent2:#c27cff;
+}}
+
+/* Liquid aurora behind everything */
+body{background:var(--canvas);position:relative;min-height:100vh}
+body::before,body::after{content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(70px);opacity:.55}
+body::before{width:60vmax;height:60vmax;left:-18vmax;top:-22vmax;background:radial-gradient(circle at 35% 35%,var(--c1),transparent 62%),radial-gradient(circle at 70% 70%,var(--c2),transparent 60%);animation:drift1 26s ease-in-out infinite alternate}
+body::after{width:55vmax;height:55vmax;right:-18vmax;bottom:-24vmax;background:radial-gradient(circle at 40% 40%,var(--c3),transparent 60%),radial-gradient(circle at 70% 60%,var(--c4),transparent 58%);animation:drift2 32s ease-in-out infinite alternate;opacity:.42}
+@media (prefers-color-scheme:dark){body::before,body::after{opacity:.38}body::after{opacity:.3}}
+@keyframes drift1{to{transform:translate(14vmax,10vmax) rotate(40deg) scale(1.12);border-radius:46% 54% 58% 42%}}
+@keyframes drift2{to{transform:translate(-12vmax,-8vmax) rotate(-35deg) scale(1.1);border-radius:58% 42% 46% 54%}}
+
+/* Glass surfaces */
+.panel,.rows,.stats,.tile-btn,.sheet-card,.pal-card,.login-card,.tip{
+  background:var(--pane);border:1px solid var(--pane-edge);box-shadow:var(--pane-shadow);
+  backdrop-filter:blur(26px) saturate(190%);-webkit-backdrop-filter:blur(26px) saturate(190%)}
+.side{background:var(--side);border-right:1px solid var(--pane-edge);backdrop-filter:blur(30px) saturate(200%);-webkit-backdrop-filter:blur(30px) saturate(200%)}
+.bar{background:color-mix(in srgb,var(--pane) 80%,transparent);border-bottom:1px solid var(--pane-edge);backdrop-filter:blur(26px) saturate(190%);-webkit-backdrop-filter:blur(26px) saturate(190%)}
+.panel,.rows,.stats,.tile-btn{border-radius:22px}
+.panel,.tile-btn,.stats{position:relative;overflow:hidden}
+.panel::before,.tile-btn::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 38%);opacity:.7}
+@media (prefers-color-scheme:dark){.panel::before,.tile-btn::before{background:linear-gradient(135deg,rgba(255,255,255,.10),transparent 38%)}}
+.panel>*,.tile-btn>*{position:relative}
+.tile-btn:hover{transform:translateY(-4px) scale(1.01);border-color:var(--pane-edge);box-shadow:var(--pane-shadow),0 18px 50px color-mix(in srgb,var(--c2) 28%,transparent)}
+.row-btn:hover{background:color-mix(in srgb,var(--c2) 10%,transparent)}
+.rank a:hover{background:color-mix(in srgb,var(--c1) 10%,transparent)}
+
+/* Brand mark: living liquid orb */
+.mark{background:conic-gradient(from 0deg,var(--c1),var(--c2),var(--c3),var(--c4),var(--c5),var(--c1));animation:spin 9s linear infinite;box-shadow:0 0 18px color-mix(in srgb,var(--c2) 55%,transparent)}
+.mark::after{background:var(--canvas);inset:6px}
+.mark.big{box-shadow:0 0 34px color-mix(in srgb,var(--c2) 60%,transparent)}.mark.big::after{inset:11px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand{font-weight:700}
+.brand span:last-child{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* Colorful navigation */
+.nav a{border-radius:14px;transition:background .25s,color .25s,transform .25s var(--ease)}
+.nav a:hover{transform:translateX(2px)}
+.nav a .ic{padding:5px;width:28px;height:28px;border-radius:9px;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.nav a:nth-child(1) .ic{background:var(--grad-cool)}
+.nav a:nth-child(2) .ic{background:linear-gradient(135deg,var(--c2),var(--c3))}
+.nav a:nth-child(3) .ic{background:var(--grad-warm)}
+.nav a[aria-current=page]{background:var(--pane-hi);box-shadow:var(--pane-shadow);color:var(--ink)}
+.nav a[aria-current=page] .ic{color:#fff}
+.signout button{border-radius:14px}.signout button:hover{background:color-mix(in srgb,var(--c3) 14%,transparent);color:var(--c3)}
+
+/* Controls with colour and a liquid sheen */
+.btn{position:relative;overflow:hidden;background:var(--grad);color:#fff;font-weight:600;box-shadow:0 8px 24px color-mix(in srgb,var(--c2) 40%,transparent),0 1px 0 rgba(255,255,255,.4) inset;transition:transform .25s var(--ease),box-shadow .25s,filter .25s}
+.btn::before{content:"";position:absolute;left:-30%;top:-120%;width:160%;height:200%;background:radial-gradient(closest-side,rgba(255,255,255,.45),transparent 70%);transform:translateX(-30%);transition:transform .7s var(--ease);pointer-events:none}
+.btn:hover{filter:saturate(1.15);transform:translateY(-1px);box-shadow:0 12px 30px color-mix(in srgb,var(--c2) 50%,transparent),0 1px 0 rgba(255,255,255,.4) inset}
+.btn:hover::before{transform:translateX(40%)}
+.btn.quiet{background:var(--pane-hi);color:var(--ink);border:1px solid var(--pane-edge);box-shadow:var(--pane-shadow);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.btn.quiet::before{display:none}
+.field,.cmd,.iconbtn{background:var(--pane);border:1px solid var(--pane-edge);box-shadow:0 1px 0 rgba(255,255,255,.5) inset;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.field{border-radius:14px}
+.field:focus-within{border-color:var(--c2);box-shadow:0 0 0 3px color-mix(in srgb,var(--c2) 28%,transparent),0 0 24px color-mix(in srgb,var(--c1) 25%,transparent)}
+.cmd:hover,.iconbtn:hover{border-color:var(--c2);box-shadow:0 0 0 3px color-mix(in srgb,var(--c2) 18%,transparent)}
+.seg{background:var(--pane);border:1px solid var(--pane-edge);border-radius:14px;padding:4px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.seg button{border-radius:10px}
+.seg button[aria-pressed=true]{background:var(--grad);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--c2) 40%,transparent)}
+.tag{background:color-mix(in srgb,var(--c2) 16%,transparent);color:var(--ink)}
+#pal-list a[aria-selected=true]{background:var(--grad);color:#fff}
+kbd{background:var(--pane-hi)}
+
+/* Hero */
+.hero{border:1px solid var(--pane-edge);border-radius:30px;box-shadow:var(--pane-shadow);
+  background:radial-gradient(700px 380px at 12% 8%,color-mix(in srgb,var(--c1) 30%,transparent),transparent 70%),radial-gradient(600px 400px at 90% 90%,color-mix(in srgb,var(--c3) 26%,transparent),transparent 70%),radial-gradient(500px 360px at 60% 20%,color-mix(in srgb,var(--c2) 24%,transparent),transparent 70%),var(--pane);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.hero h1{background:linear-gradient(120deg,var(--ink) 30%,var(--c2) 70%,var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-note{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--pane-hi);border:1px solid var(--pane-edge);font-weight:500;color:var(--ink)}
+
+/* Stats: coloured figures */
+.stats>div{position:relative}
+.stats>div::before{content:"";position:absolute;left:24px;top:0;width:34px;height:3px;border-radius:0 0 4px 4px}
+.stats>div:nth-child(1)::before{background:var(--grad-cool)}.stats>div:nth-child(2)::before{background:var(--grad-warm)}.stats>div:nth-child(3)::before{background:var(--grad-fresh)}
+.stats>div:nth-child(1) .num{background:var(--grad-cool);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stats>div:nth-child(2) .num{background:var(--grad-warm);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stats>div:nth-child(3) .num{background:var(--grad-fresh);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* Bars and charts: more colour */
+.rbar i,.track i{background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3))}
+.hist i.go{background:linear-gradient(180deg,var(--c3),var(--c2) 55%,var(--c1));box-shadow:0 6px 18px color-mix(in srgb,var(--c2) 35%,transparent)}
+.hist div:nth-child(1) i.go{background:linear-gradient(180deg,var(--c4),var(--c3))}
+.hist div:nth-child(2) i.go{background:linear-gradient(180deg,var(--c3),var(--c2))}
+.hist div:nth-child(3) i.go{background:linear-gradient(180deg,var(--c2),var(--c1))}
+.hist div:nth-child(4) i.go{background:linear-gradient(180deg,var(--c1),var(--c6))}
+.hist div:nth-child(5) i.go{background:linear-gradient(180deg,var(--c6),var(--c5))}
+.k-in{background:linear-gradient(90deg,var(--c4),var(--c3))}.k-gl{background:linear-gradient(90deg,var(--c1),var(--c6))}
+.sbar{background:var(--track)}
+.rf{stroke:url(#ringgrad)}
+.glyph i{background:linear-gradient(180deg,var(--c3),var(--c2))}
+.rank li:nth-child(1) .rk{color:var(--c4);font-weight:700}.rank li:nth-child(2) .rk{color:var(--c2);font-weight:700}.rank li:nth-child(3) .rk{color:var(--c1);font-weight:700}
+.dot{background:var(--c5)}
+
+/* Sheet and login */
+.sheet-card{background:var(--glass)}
+.login-card{border-radius:30px;box-shadow:var(--pane-shadow),0 30px 80px color-mix(in srgb,var(--c2) 25%,transparent)}
+body.login{background:var(--canvas)}
+.login-card h1{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+@media (max-width:760px){
+  .side{background:var(--pane-hi);border:1px solid var(--pane-edge);border-radius:24px;margin:0 10px 10px;inset:auto 0 0 0;box-shadow:var(--pane-shadow)}
+  .nav a .ic{width:26px;height:26px}
+  .nav a:hover{transform:none}
+}
+@media (prefers-reduced-motion:reduce){body::before,body::after,.mark{animation:none!important}}
+@supports not (backdrop-filter:blur(1px)){.panel,.rows,.stats,.tile-btn,.side,.bar{background:var(--pane-hi)}}
