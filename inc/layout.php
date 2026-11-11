@@ -37,6 +37,7 @@ function icon(string $name): string {
         'startups' => '<path d="M5 19V9l7-5 7 5v10M9 19v-6h6v6"/>',
         'schemes'  => '<path d="M4 10h16M5 10V20M19 10V20M9 10v10M15 10v10M3 20h18M12 3 3.5 8h17z"/>',
         'regs'     => '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+        'funding'  => '<path d="M3.5 17.5 9.5 11l4 4 7-8M15 7h5.5v5.5"/>',
         'jobs'     => '<rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3.5 13h17"/>',
         'search'   => '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/>',
         'refresh'  => '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
@@ -68,6 +69,7 @@ function palette_json(array $d): string {
         ['k' => 'Pages', 't' => 'Overview', 'h' => 'index.php'],
         ['k' => 'Pages', 't' => 'Ideas', 'h' => 'ideas.php'],
         ['k' => 'Pages', 't' => 'Startups', 'h' => 'startups.php'],
+        ['k' => 'Pages', 't' => 'Funding', 'h' => 'funding.php'],
         ['k' => 'Pages', 't' => 'Jobs and skills', 'h' => 'jobs.php'],
         ['k' => 'Pages', 't' => 'Government schemes', 'h' => 'schemes.php'],
         ['k' => 'Pages', 't' => 'Regulations', 'h' => 'regulations.php'],
@@ -87,7 +89,7 @@ function palette_json(array $d): string {
 
 function page_head(string $title, string $active, array $d = []): void {
     global $CONFIG;
-    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'jobs.php' => ['Jobs', 'jobs'], 'schemes.php' => ['Schemes', 'schemes'], 'regulations.php' => ['Regulations', 'regs']];
+    $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'funding.php' => ['Funding', 'funding'], 'jobs.php' => ['Jobs', 'jobs'], 'schemes.php' => ['Schemes', 'schemes'], 'regulations.php' => ['Regulations', 'regs']];
     $brand = 'BusinessOS';
     $last = $d['log'][0]['logged_on'] ?? null;
     ?><!doctype html>
@@ -99,7 +101,7 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="color-scheme" content="light dark">
 <title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=3">
+<link rel="stylesheet" href="assets/glass.css?v=4">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>
 <body>
@@ -156,7 +158,7 @@ function page_foot(array $d = [], array $scripts = []): void { ?>
 
 <dialog id="palette" aria-label="Search or jump to">
   <div class="pal-card">
-    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="Search ideas, startups, jobs, schemes, laws" autocomplete="off" spellcheck="false" aria-label="Search"></div>
+    <div class="pal-input"><?= icon('search') ?><input id="pal-q" type="text" placeholder="Search ideas, startups, funding, jobs, schemes, laws" autocomplete="off" spellcheck="false" aria-label="Search"></div>
     <ul id="pal-list" role="listbox"></ul>
     <div class="pal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
   </div>

@@ -234,3 +234,30 @@ body.login{background:var(--canvas)}
   .bar-actions{gap:6px}
   .stabs .seg{width:100%}.stabs .seg button{flex:1;justify-content:center}
 }
+
+/* Funding page */
+.seg[hidden]{display:none}
+.fhist{grid-template-columns:repeat(8,1fr);gap:8px}
+.fhist b{font-size:12.5px;white-space:nowrap}
+.fhist span{white-space:nowrap}
+.fhist .na i{opacity:.35}
+.fhist .na b{color:var(--ink3);font-weight:500}
+.frow .row-btn{grid-template-columns:48px minmax(0,1fr) auto minmax(0,190px);gap:16px}
+.famt{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.famt b{font-size:15.5px;letter-spacing:-.01em}
+.famt small{color:var(--ink3);font-size:12.5px}
+.flead{color:var(--ink2);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toolbar #fper{margin-left:auto}
+#fstate{font-weight:600}
+@media (max-width:900px){
+  .frow .row-btn{grid-template-columns:40px minmax(0,1fr) auto;gap:12px}
+  .flead{display:none}
+  .toolbar #fper{margin-left:0;width:100%}.toolbar #fper button{flex:1}
+}
+@media (max-width:520px){.fhist{gap:4px}.fhist b{font-size:11px}.fhist span{font-size:10.5px}}
+.sectors.invs li{grid-template-columns:minmax(130px,1.3fr) minmax(0,1.2fr) 28px}
+@media (max-width:520px){
+  .stats>div{padding:16px 14px;min-width:0}
+  .stats .num{font-size:clamp(17px,5.3vw,24px);white-space:nowrap}
+  .stats .lbl{font-size:12px;overflow-wrap:anywhere}
+}

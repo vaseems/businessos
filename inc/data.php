@@ -64,3 +64,5 @@ function load_cached(string $fn, string $must, string $name, bool $force = false
 
 function load_jobs(bool $force = false): array { return load_cached('app_get_jobs', 'future', 'jobs', $force); }
 function load_policy(bool $force = false): array { return load_cached('app_get_policy', 'schemes', 'policy', $force); }
+
+function load_funding(bool $force = false): array { return load_cached('app_get_funding', 'deals', 'funding', $force); }
