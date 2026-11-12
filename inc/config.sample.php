@@ -8,5 +8,5 @@ return [
     'password_hash' => '',
     'cache_ttl'    => 300,
     'cache_file'   => __DIR__ . '/cache/data.json',
-    'site_name'    => 'BusinessOS',
+    'site_name'    => 'Groundwork',
 ];

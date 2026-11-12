@@ -64,7 +64,7 @@ function palette_json(array $d): string {
 function page_head(string $title, string $active, array $d = []): void {
     global $CONFIG;
     $nav = ['index.php' => ['Overview', 'overview'], 'ideas.php' => ['Ideas', 'ideas'], 'startups.php' => ['Startups', 'startups'], 'funding.php' => ['Funding', 'funding'], 'opportunities.php' => ['Opportunities', 'opps'], 'jobs.php' => ['Jobs', 'jobs'], 'schemes.php' => [current_region() === 'us' ? 'Programs' : 'Schemes', 'schemes'], 'regulations.php' => ['Regulations', 'regs']];
-    $brand = 'BusinessOS';
+    $brand = 'Groundwork';
     $rc = region_cfg();
     $last = $d['log'][0]['logged_on'] ?? null;
     ?><!doctype html>
@@ -74,9 +74,9 @@ function page_head(string $title, string $active, array $d = []): void {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="color-scheme" content="light dark">
-<title><?= h($title) ?> · <?= h('BusinessOS') ?></title>
+<title><?= h($title) ?> · <?= h('Groundwork') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=7">
+<link rel="stylesheet" href="assets/glass.css?v=8">
 <noscript><style>.rbar i,.track i,.sbar i{width:var(--w)}.hist i{height:var(--h)}</style></noscript>
 </head>
 <body data-region="<?= h($rc['code']) ?>"<?= region_unknown() ? ' data-geo="unknown"' : '' ?>>

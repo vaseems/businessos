@@ -1,4 +1,8 @@
-# BusinessOS (PHP)
+# Groundwork (PHP)
+
+Lay the groundwork. Build what’s next.
+
+Funding, programs, laws and startup ideas for founders in India and the US.
 
 Shows the ranked ideas, startup dataset and charts from the `india-startup-ideas` Supabase project.
 

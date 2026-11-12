@@ -21,20 +21,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'That password is incorrect.';
     }
 }
-$brand = 'BusinessOS';
+$brand = 'Groundwork';
 ?><!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="light dark">
-<title>Sign in · <?= h('BusinessOS') ?></title>
+<title>Sign in · <?= h('Groundwork') ?></title>
 <link rel="stylesheet" href="assets/style.css?v=3">
-<link rel="stylesheet" href="assets/glass.css?v=7">
+<link rel="stylesheet" href="assets/glass.css?v=8">
 </head><body class="login">
 <div id="particles" data-count="55" aria-hidden="true"></div>
 <form method="post" class="login-card">
   <span class="mark big" aria-hidden="true"></span>
   <h1><?= h($brand) ?></h1>
-  <p class="muted">Sign in to see today's ranked ideas.</p>
+  <p class="muted">Lay the groundwork. Build what’s next.</p>
   <?php if ($error): ?><p class="notice" role="alert"><?= h($error) ?></p><?php endif; ?>
   <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
   <label class="field"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Password" aria-label="Password" autofocus required></label>

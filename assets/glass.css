@@ -1,4 +1,4 @@
-/* BusinessOS: glass + liquid layer. Loads after style.css and overrides its surfaces. */
+/* Groundwork: glass + liquid layer. Loads after style.css and overrides its surfaces. */
 :root{
   --c1:#0a84ff;--c2:#bf5af2;--c3:#ff375f;--c4:#ff9f0a;--c5:#30d158;--c6:#64d2ff;
   --grad:linear-gradient(135deg,var(--c1),var(--c2) 55%,var(--c3));
