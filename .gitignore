@@ -1,4 +1,11 @@
-inc/config.php
-inc/cache/*.json
-*.zip
+node_modules
+dist
+out
+.next
+.env
+.env.*
+!.env.example
+.vercel
+*.tsbuildinfo
+next-env.d.ts
 .DS_Store

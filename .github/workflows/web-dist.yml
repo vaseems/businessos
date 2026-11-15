@@ -1,0 +1,38 @@
+name: Build web and publish to web-dist
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/web/**', '.github/workflows/web-dist.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Build static site
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://groundwork-api-nu.vercel.app/api' }}
+        run: |
+          npm ci
+          npm run build
+          cp out/index.html out/200.html 2>/dev/null || true
+      - name: Publish to web-dist
+        run: |
+          cd apps/web/out
+          git init -q -b web-dist
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Build ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" web-dist
