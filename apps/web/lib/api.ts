@@ -7,7 +7,7 @@ export const getToken = (): string => {
   try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; }
 };
 export const setToken = (t: string) => { try { localStorage.setItem(TOKEN_KEY, t); } catch { /* ignore */ } };
-export const clearToken = () => { try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch { /* ignore */ } };
+export const clearToken = () => { try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); sessionStorage.removeItem('gw_chat'); } catch { /* ignore */ } };
 
 const USER_KEY = 'gw_user';
 export interface SessionUser { id: string; username: string; name: string | null; role: 'admin' | 'member'; isInitial: boolean }
@@ -15,8 +15,10 @@ export const getUser = (): SessionUser | null => {
   try { const v = localStorage.getItem(USER_KEY); return v ? JSON.parse(v) : null; } catch { return null; }
 };
 const setUser = (u: SessionUser) => { try { localStorage.setItem(USER_KEY, JSON.stringify(u)); } catch { /* ignore */ } };
-/** Only the initial administrator sees and can use user management. */
-export const isAdmin = (u: SessionUser | null) => !!u && u.isInitial && u.role === 'admin';
+/** Administrators (the initial one and anyone they tag) see and use user management. Everyone else never sees it. */
+export const isAdmin = (u: SessionUser | null) => !!u && u.role === 'admin';
+/** Only the initial administrator can tag or untag administrators. */
+export const isOwner = (u: SessionUser | null) => !!u && u.isInitial && u.role === 'admin';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -89,3 +91,33 @@ export async function downloadCsv(what: 'ideas' | 'startups', region: RegionCode
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+
+export type HistorySection = 'ideas' | 'startups' | 'funding' | 'opportunities' | 'schemes' | 'regulations' | 'jobs' | 'changes' | 'runs';
+export interface HistoryRow { d: string | null; title: string; sub: string | null; tag: string | null; kind: string | null; ref: string | null }
+export interface HistoryPage { section: HistorySection; total: number; latest: string | null; page: number; size: number; pages: number; rows: HistoryRow[] }
+
+export function fetchHistory(section: HistorySection, region: RegionCode, o: { page: number; size: number; q: string; since: number }): Promise<HistoryPage> {
+  const p = new URLSearchParams({ region, page: String(o.page), size: String(o.size) });
+  if (o.q.trim()) p.set('q', o.q.trim());
+  if (o.since) p.set('since', String(o.since));
+  return send<HistoryPage>('GET', `/history/${section}?${p}`);
+}
+
+export interface Hit { id: string; cat: string; title: string; sub: string; tag: string; date: string; href: string; partial: boolean }
+export interface SearchOut {
+  q: string; tokens: string[]; total: number; ms: number; top: Hit | null;
+  groups: { key: string; label: string; blurb: string; count: number }[];
+  cats: { key: string; label: string; group: string; count: number }[];
+  results: Record<string, Hit[]>;
+}
+export function fetchSearch(q: string, region: RegionCode, o: { per?: number; cat?: string; offset?: number } = {}): Promise<SearchOut> {
+  const p = new URLSearchParams({ q, region, per: String(o.per ?? 5) });
+  if (o.cat) p.set('cat', o.cat);
+  if (o.offset) p.set('offset', String(o.offset));
+  return send<SearchOut>('GET', `/search?${p}`);
+}
+
+export interface ChatCard { cat: string; label: string; title: string; sub: string; tag: string; href: string }
+export interface ChatOut { reply: string; cards: ChatCard[]; suggestions: string[]; mode: 'search' | 'llm' }
+export const askChat = (message: string, history: { role: 'user' | 'assistant'; text: string }[], page: string, region: RegionCode) =>
+  send<ChatOut>('POST', '/chat', { message, history, page, region });

@@ -5,6 +5,7 @@ import { md5 } from '@/lib/md5';
 import { KIND_LABEL, KINDS, KIND_RANK, RANK, STAGE_LABELS, STATUS_LABEL, cmp, dayMs, monogram, orgHost, orgSite, prepareSources, sheetBody, stageText, trimSet, when } from '@/lib/opps';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { SearchField, SelectField, Seg } from '@/components/ui';
 
 /** Categories in the order a founder usually works through them, with one line on what each is. */
@@ -175,6 +176,7 @@ export default function Directory() {
 
           {!shown.length && <section className="empty"><h1>No matches</h1><p>Try another word, stage or availability.</p></section>}
           <p className="muted small jnote">Every organisation here comes from official pages and reputable reports. Logos are fetched from each organisation&apos;s own site when we know it. Open a card for status, terms and how to apply. Cheque sizes and windows change often, so confirm on the official page before you pitch. Reviewed regularly{m.checkedMax ? ', last on ' + dFull(m.checkedMax) : ''}. For information only, not investment advice.</p>
+          <PreviousResults section="opportunities" />
         </>
       )}
     </Page>

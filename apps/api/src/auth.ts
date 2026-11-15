@@ -70,13 +70,13 @@ export class AuthGuard implements CanActivate {
   }
 }
 
-/** Only the initial administrator. Always checked against the database, never the cache. */
+/** Any active administrator (the initial one or one they tagged). Always checked against the database, never the cache. */
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(private readonly s: SessionService) {}
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const u = await this.s.verify(ctx.switchToHttp().getRequest(), true);
-    if (!u.is_initial || u.role !== 'admin') throw new ForbiddenException('Only the administrator can do this');
+    if (u.role !== 'admin') throw new ForbiddenException('Only administrators can do this');
     return true;
   }
 }

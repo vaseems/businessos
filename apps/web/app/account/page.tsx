@@ -34,7 +34,7 @@ export default function Account() {
     <Shell title="Account">
       <section className="panel uadd">
         <h2 className="sheet-h">{user ? user.name || user.username : 'Account'}</h2>
-        {user && <p className="muted small">Signed in as <b>@{user.username}</b> · {user.isInitial ? 'Administrator' : 'Member'}</p>}
+        {user && <p className="muted small">Signed in as <b>@{user.username}</b> · {user.isInitial ? 'Initial admin' : user.role === 'admin' ? 'Admin' : 'Member'}</p>}
         <h2 className="sheet-h" style={{ marginTop: 22 }}>Change password</h2>
         {error && <p className="notice" role="alert">{error}</p>}
         {done && <p className="notice ok" role="status">Password changed. You are still signed in on this device; other devices must sign in again.</p>}

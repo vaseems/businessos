@@ -5,6 +5,7 @@ import { md5 } from '@/lib/md5';
 import { stateSlug } from '@/lib/region';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { SearchField } from '@/components/ui';
 
 const STATUS_LBL: Record<string, string> = {
@@ -159,6 +160,7 @@ export default function Regulations() {
           <p className="muted small jnote">{rc.code === 'us'
             ? 'Federal laws and rules, plus the state laws that matter most to startups and small businesses. Choose your state in the header to see its laws next to the federal ones.'
             : 'Central laws and rules that matter most to startups and small businesses.'} Reviewed monthly. Last refreshed {dFull(data.refreshed_at ?? iso(new Date()))}.</p>
+          <PreviousResults section="regulations" />
         </>
       )}
     </Page>

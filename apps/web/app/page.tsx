@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useApi, useApp } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { Count } from '@/components/ui';
 import { Constellation } from '@/components/Vendor';
 import { dMon, money } from '@/lib/format';
@@ -151,6 +152,7 @@ export default function Overview() {
               </ul>
             )}
           </section>
+          <PreviousResults section="changes" title="Previous updates" />
         </>
       )}
     </Page>

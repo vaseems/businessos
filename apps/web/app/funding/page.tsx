@@ -5,6 +5,7 @@ import { md5 } from '@/lib/md5';
 import { stateMap, stateSlug } from '@/lib/region';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { SearchField, Seg, SelectField } from '@/components/ui';
 
 const GROUP_OF: Record<string, string> = {
@@ -229,6 +230,7 @@ export default function Funding() {
             ? 'The largest US startup funding rounds each week, taken from public weekly roundups. Smaller rounds are not listed, so weekly totals understate all US funding.'
             : 'Funding rounds of about US$0.5 million and above reported in weekly roundups of Indian startup funding. Undisclosed amounts are not listed.'}{' '}
             Headquarters are known for {m.hqKnown} of {m.totalDeals} rounds so far and are filled in as they are checked. Updated weekly{data.refreshed_at ? ', last on ' + dFull(data.refreshed_at) : ''}. For information only, not investment advice.</p>
+          <PreviousResults section="funding" />
         </>
       )}
     </Page>

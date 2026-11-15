@@ -4,6 +4,7 @@ import { downloadCsv } from '@/lib/api';
 import { has, money, num, s, safeUrl } from '@/lib/format';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { Icon, SearchField, Seg, SelectField } from '@/components/ui';
 
 export default function Startups() {
@@ -102,6 +103,7 @@ export default function Startups() {
             ))}
           </ul>
           {!!startups.length && !shown.length && <section className="empty" id="none"><h1>No matches</h1><p>Try a different search or clear the filters.</p></section>}
+          <PreviousResults section="startups" />
         </>
       )}
     </Page>

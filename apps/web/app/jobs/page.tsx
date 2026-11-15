@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { dFull, has, s, safeUrl } from '@/lib/format';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { Count, SearchField } from '@/components/ui';
 
 const jslug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -244,6 +245,7 @@ export default function Jobs() {
           </div>
 
           <p className="muted small jnote">Sources: {m.publishers.join(', ')}. The top 5 skills for each role are an indicative list, not a published ranking. Data refreshed {dFull(data.refreshed_at ?? new Date().toISOString())}.</p>
+          <PreviousResults section="jobs" />
         </>
       )}
     </Page>

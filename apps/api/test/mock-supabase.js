@@ -8,7 +8,9 @@ process.env.JWT_SECRET = 'test-secret';
 process.env.PASSWORD_HASH = bcrypt.hashSync('Initial-Pass-123', 4);
 process.env.PORT = '3999';
 
+const fixtures = require('./fixtures');
 const users = [];
+const calls = [];
 const row = (u) => { const { password_hash, ...r } = u; return r; };
 const realFetch = global.fetch;
 global.fetch = async (url, init) => {
@@ -35,10 +37,27 @@ global.fetch = async (url, init) => {
     case 'app_user_set_hash': { const u = find(a.p_id); if (!u) { out = { error: 'not_found' }; break; } u.password_hash = a.p_hash; u.pw_changed_at = new Date().toISOString(); out = row(u); break; }
     case 'app_user_delete': { const i = users.findIndex((x) => x.id === a.p_id); if (i < 0) { out = { error: 'not_found' }; break; } if (users[i].is_initial) { out = { error: 'protected' }; break; } users.splice(i, 1); out = { ok: true }; break; }
     case 'app_user_touch': { const u = find(a.p_id); if (u) u.last_login_at = new Date().toISOString(); out = null; break; }
+    case 'app_user_set_role': {
+      const u = find(a.p_id); if (!u) { out = { error: 'not_found' }; break; }
+      if (!['admin', 'member'].includes(a.p_role)) { out = { error: 'invalid' }; break; }
+      if (u.is_initial) { out = { error: 'protected' }; break; }
+      u.role = a.p_role; out = row(u); break; }
+    case 'app_get_data': out = fixtures.data; break;
+    case 'app_get_jobs': out = fixtures.jobs; break;
+    case 'app_get_policy': out = fixtures.policy; break;
+    case 'app_get_funding': out = fixtures.funding; break;
+    case 'app_get_funding_sources': out = fixtures.opportunities; break;
+    case 'app_history': {
+      calls.push({ fn, a });
+      const all = Array.from({ length: 57 }, (_, i) => ({ d: new Date(Date.UTC(2026, 10, 15 - i)).toISOString(), title: 'Row ' + (i + 1), sub: 'sub', tag: 'x', kind: 'k', ref: 'r' + i }));
+      const q = (a.p_q || '').toLowerCase();
+      const f = all.filter((r) => !q || r.title.toLowerCase().includes(q));
+      out = { section: a.p_section, total: f.length, latest: f[0] ? f[0].d : null, rows: f.slice(a.p_offset, a.p_offset + a.p_limit) };
+      break; }
     default: return new Response('{}', { status: 404 });
   }
   return new Response(out === null ? '' : JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
 };
 
 
-module.exports = { users, realFetch };
+module.exports = { users, realFetch, calls, fixtures };

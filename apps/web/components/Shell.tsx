@@ -2,9 +2,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { clearToken, getToken, getUser, isAdmin, me, type SessionUser } from '@/lib/api';
+import { clearToken, fetchSearch, getToken, getUser, isAdmin, me, type SessionUser } from '@/lib/api';
 import { regionGroups, stateSlug } from '@/lib/region';
 import { useApi, useApp, type PaletteItem } from './AppContext';
+import Chat from './Chat';
 import { Icon, Notice } from './ui';
 
 export default function Shell({ title, children, refresh, stale }: { title: string; children: ReactNode; refresh?: () => void; stale?: boolean }) {
@@ -29,6 +30,7 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
   const nav: [string, string, string][] = [
     ['/', 'Overview', 'overview'], ['/ideas/', 'Ideas', 'ideas'], ['/startups/', 'Startups', 'startups'], ['/funding/', 'Funding', 'funding'],
     ['/opportunities/', 'Opportunities', 'opps'], ['/directory/', 'Directory', 'directory'], ['/jobs/', 'Jobs', 'jobs'], ['/schemes/', region === 'us' ? 'Programs' : 'Schemes', 'schemes'], ['/regulations/', 'Regulations', 'regs'],
+    ['/history/', 'History', 'history'],
     ...(admin ? [['/users/', 'Users', 'users'] as [string, string, string]] : []),
   ];
   const isActive = (h: string) => (h === '/' ? pathname === '/' : pathname.startsWith(h.replace(/\/$/, '')));
@@ -94,10 +96,33 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
     for (const s of dataApi.data?.startups || []) out.push({ k: 'Startups', t: String(s.name), s: String(s.sector ?? ''), h: `/startups/#${s.slug}` });
     return out;
   }, [base, paletteExtras, dataApi.data]);
+  // Live results from the server, grouped by category. The local list is the fallback while they load or if the call fails.
+  const [srv, setSrv] = useState<{ q: string; items: PaletteItem[]; total: number } | null>(null);
+  useEffect(() => {
+    const term = pq.trim();
+    if (term.length < 2) { setSrv(null); return; }
+    let live = true;
+    const t = setTimeout(() => {
+      fetchSearch(term, region, { per: 3 }).then((d) => {
+        if (!live) return;
+        const items: PaletteItem[] = [];
+        for (const c of d.cats) for (const h of d.results[c.key] || []) items.push({ k: c.label, t: h.title, s: h.tag || h.sub, h: h.href });
+        setSrv({ q: term, items, total: d.total });
+      }).catch(() => { if (live) setSrv(null); });
+    }, 200);
+    return () => { live = false; clearTimeout(t); };
+  }, [pq, region]);
   const shown = useMemo(() => {
     const term = pq.trim().toLowerCase();
-    return all.filter((i) => !term || (i.t + ' ' + (i.s || '')).toLowerCase().includes(term)).slice(0, 40);
-  }, [all, pq]);
+    const match = (i: PaletteItem) => !term || (i.t + ' ' + (i.s || '')).toLowerCase().includes(term);
+    if (term.length >= 2) {
+      const seeAll: PaletteItem = { k: 'Search', t: srv && srv.q.toLowerCase() === term ? `See all ${srv.total} results for “${pq.trim()}”` : `Search everything for “${pq.trim()}”`, s: 'Results in every category', h: `/search/?q=${encodeURIComponent(pq.trim())}` };
+      const pages = base.filter(match);
+      const rest = srv && srv.q.toLowerCase() === term ? srv.items : all.filter((i) => !base.includes(i) && match(i)).slice(0, 30);
+      return [seeAll, ...pages, ...rest].slice(0, 45);
+    }
+    return all.filter(match).slice(0, 40);
+  }, [all, base, pq, srv]);
 
   const openPalette = () => {
     const d = palRef.current;
@@ -186,6 +211,8 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
           <footer className="foot">&copy; 2026 Gradient Technology Labs LLP. All rights reserved.</footer>
         </div>
       </div>
+
+      <Chat />
 
       <dialog ref={sheetRef} id="sheet" aria-labelledby="sheet-title" onClose={closeSheet} onClick={(e) => { if (e.target === sheetRef.current) closeSheet(); }}>
         <div className="sheet-card">

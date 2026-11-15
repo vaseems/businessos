@@ -19,6 +19,10 @@ const PATHS: Record<string, ReactNode> = {
   out: <path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   download: <path d="M12 4v11M7 11l5 5 5-5M5 20h14" />,
+  history: <><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1M3.5 4.5v4h4" /><path d="M12 7.5V12l3 2" /></>,
+  chat: <path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.4-4.4A7.5 7.5 0 1 1 20 12z" />,
+  send: <path d="M4 12 20 4l-5 16-3-7z" />,
+  spark: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" />,
 };
 
 export function Icon({ name }: { name: string }) {

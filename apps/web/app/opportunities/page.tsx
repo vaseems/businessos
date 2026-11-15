@@ -6,6 +6,7 @@ import { stateMap } from '@/lib/region';
 import { KINDS, KIND_LABEL, RANK, KIND_RANK, STAGE_LABELS, STATUS_LABEL, cmp, dayMs, monogram, prepareSources, sheetBody, stSlugOf, stageText, when } from '@/lib/opps';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
+import { PreviousResults } from '@/components/History';
 import { SearchField, Seg, SelectField } from '@/components/ui';
 
 const SETS: Record<string, string[]> = { now: ['open', 'rolling'], soon: ['upcoming', 'between'] };
@@ -158,6 +159,7 @@ export default function Opportunities() {
           </ul>
           {!shown.length && <section className="empty" id="onone"><h1>No matches</h1><p id="onone-msg">{msg}</p></section>}
           <p className="muted small jnote">Funds, programs, grants and perks open to startups in {rc.name}, from official pages and reputable reports. Deadlines, {rc.code === 'us' ? 'check' : 'cheque'} sizes and terms change often, so confirm on the official page before you apply. Programs that take equity are marked in the detail view. Reviewed regularly{m.checkedMax ? ', last on ' + dFull(m.checkedMax) : ''}. For information only, not investment advice.</p>
+          <PreviousResults section="opportunities" />
         </>
       )}
     </Page>
