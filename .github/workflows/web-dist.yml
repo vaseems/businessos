@@ -29,10 +29,18 @@ jobs:
           cp out/index.html out/200.html 2>/dev/null || true
       - name: Publish to web-dist
         run: |
-          cd apps/web/out
-          git init -q -b web-dist
+          # Add a commit on top of the existing web-dist branch (never rewrite it), so a server that pulls it can fast-forward.
+          REPO="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if ! git clone -q --depth 1 --branch web-dist "$REPO" /tmp/dist 2>/dev/null; then
+            git init -q -b web-dist /tmp/dist
+            git -C /tmp/dist remote add origin "$REPO"
+          fi
+          cd /tmp/dist
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$GITHUB_WORKSPACE/apps/web/out/." .
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
           git add -A
+          if git diff --cached --quiet; then echo "No changes to publish"; exit 0; fi
           git commit -qm "Build ${GITHUB_SHA::7}"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" web-dist
+          git push origin web-dist
