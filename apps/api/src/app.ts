@@ -9,7 +9,7 @@ async function bootstrap() {
   const origins = cfg.corsOrigins;
   app.enableCors({
     origin: origins.length ? origins : true,
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Disposition'],
     maxAge: 86400,

@@ -33,3 +33,37 @@
 .dcard-main:focus-visible{outline-offset:-3px;border-radius:20px}
 @media (max-width:560px){.dgrid{grid-template-columns:1fr}.dcard-main{padding:16px 16px 10px}.dsite{margin:0 16px 14px}}
 @media (prefers-reduced-motion:reduce){.dcard{transition:none}.dcard:hover{transform:none}}
+
+/* Account and user management */
+.signout{display:flex;flex-direction:column;gap:2px}
+.signout .acct{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:14px;color:var(--ink2);font-weight:500;min-width:0}
+.signout .acct span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.signout .acct:hover,.signout .acct[aria-current=page]{background:var(--track);color:var(--ink);text-decoration:none}
+.signout .acct[aria-current=page] .ic{color:var(--accent)}
+.uadd{margin-bottom:18px;max-width:860px}
+.uadd .sheet-h{margin-top:0}
+.uform{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.uform .field{flex:1 1 220px;min-width:0}
+.acct-form{flex-direction:column;align-items:stretch;max-width:420px}
+.acct-form .field{flex:none}
+.notice.ok{border-color:color-mix(in srgb,var(--good) 45%,transparent);color:var(--ink)}
+.ucred{margin-bottom:18px;max-width:860px;border-color:color-mix(in srgb,var(--c5) 55%,var(--pane-edge))}
+.ucred-box{display:grid;gap:10px;margin:14px 0;padding:14px 16px;border-radius:14px;background:var(--pane-hi);border:1px solid var(--pane-edge)}
+.ucred-box div{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline}
+.ucred-box dt{min-width:150px;color:var(--ink3);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.ucred-box dd{margin:0;font-weight:600}
+.ucred-box code{font:600 16px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em;user-select:all;overflow-wrap:anywhere}
+.ucred-actions{display:flex;gap:10px;flex-wrap:wrap}
+.ulist{list-style:none;margin:0;padding:0}
+.urow{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;align-items:center;gap:6px 16px;padding:14px 20px}
+.urow+.urow{border-top:1px solid var(--line2)}
+.urow.off .uid,.urow.off .rkb{opacity:.55}
+.uid{display:flex;flex-direction:column;min-width:0}
+.uid b{overflow-wrap:anywhere}
+.ubadges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.uactions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn.danger{color:var(--bad)}
+@media (max-width:820px){
+  .urow{grid-template-columns:44px minmax(0,1fr);padding:14px}
+  .ubadges,.uactions{grid-column:2;justify-content:flex-start}
+}

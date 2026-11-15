@@ -29,7 +29,10 @@ Browser ── static pages (Hostinger) ──► NestJS API (Vercel) ──► 
 | --- | --- | --- |
 | `GET /health` | no | liveness |
 | `GET /geo` | no | edition guess from the edge country header |
-| `POST /auth/login` | no | `{ password }` returns `{ token }` (12 h, 8 tries per 15 min per IP) |
+| `POST /auth/login` | no | `{ username, password }` returns `{ token, user }` (12 h, 8 tries per 15 min per IP) |
+| `GET /auth/check` | yes | confirms the session and returns the user |
+| `POST /auth/password` | yes | `{ current, next }` changes your own password and returns a fresh token |
+| `GET /users` `POST /users` `PATCH /users/:id` `POST /users/:id/reset-password` `DELETE /users/:id` | initial admin only | user management; new users get a one-time temporary password |
 | `GET /data` `/jobs` `/policy` `/funding` `/opportunities` | yes | edition-filtered datasets, `?region=in\|us`, `&refresh=1` to bypass the cache |
 | `GET /export/ideas` `/export/startups` | yes | CSV download |
 
@@ -45,7 +48,15 @@ echo NEXT_PUBLIC_API_URL=http://localhost:3000/api > .env.local
 npm run dev                                           # http://localhost:3100
 ```
 
-`FIXTURE_DIR=<dir>` makes the API read `data.json`, `jobs.json`, `policy.json`, `funding.json` and `opportunities.json` from disk instead of Supabase, which is handy for offline work.
+### Users and the initial admin
+
+Accounts live in the `app_users` table in Supabase and are only reachable through app-key RPCs. The first time `ADMIN_USERNAME` (default `admin`) signs in with the password behind `PASSWORD_HASH`, the initial admin account is created. After that the password is changed in the app (Account page) and `PASSWORD_HASH` is no longer used. Only the initial admin sees the Users page and can call `/users`; it cannot be disabled or deleted. Disabling a user or resetting a password signs them out (within about 30 seconds for a disabled user).
+
+If the admin password is lost, delete the `is_initial` row from `app_users`; the next sign-in with the `PASSWORD_HASH` password recreates it.
+
+Tests: `cd apps/api && npm run build && node test/auth.e2e.js` runs the auth rules against an in-memory stand-in for the database. `node test/serve-mock.js` serves that stand-in for offline UI work (sign in as `admin` / `Initial-Pass-123`).
+
+`FIXTURE_DIR=<dir>` makes the API read `data.json`, `jobs.json`, `policy.json`, `funding.json` and `opportunities.json` from disk instead of Supabase for the datasets. Sign-in still needs the user RPCs, so use `node test/serve-mock.js` when you are fully offline.
 
 ## Deploy
 

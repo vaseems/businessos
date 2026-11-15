@@ -11,6 +11,8 @@ const PATHS: Record<string, ReactNode> = {
   funding: <path d="M3.5 17.5 9.5 11l4 4 7-8M15 7h5.5v5.5" />,
   opps: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r=".9" /></>,
   directory: <><rect x="4" y="4" width="7" height="7" rx="1.8" /><rect x="13" y="4" width="7" height="7" rx="1.8" /><rect x="4" y="13" width="7" height="7" rx="1.8" /><rect x="13" y="13" width="7" height="7" rx="1.8" /></>,
+  users: <><circle cx="9" cy="8.5" r="3.2" /><path d="M3.5 19.5c.4-3.2 2.8-5 5.5-5s5.1 1.8 5.5 5" /><path d="M16 5.6a3 3 0 0 1 0 5.8M17.5 14.8c1.7.5 2.8 2 3 4.2" /></>,
+  account: <><circle cx="12" cy="8.5" r="3.6" /><path d="M5 20c.5-3.6 3.3-5.6 7-5.6s6.5 2 7 5.6" /></>,
   jobs: <><rect x="3.5" y="7.5" width="17" height="12" rx="2.5" /><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3.5 13h17" /></>,
   search: <><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4-4" /></>,
   refresh: <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />,

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { clearToken, getToken } from '@/lib/api';
+import { clearToken, getToken, getUser, isAdmin, me, type SessionUser } from '@/lib/api';
 import { regionGroups, stateSlug } from '@/lib/region';
 import { useApi, useApp, type PaletteItem } from './AppContext';
 import { Icon, Notice } from './ui';
@@ -12,15 +12,24 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
   const pathname = usePathname();
   const router = useRouter();
   const [authed, setAuthed] = useState(false);
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
-    if (!getToken()) router.replace('/login/'); else setAuthed(true);
+    if (!getToken()) { router.replace('/login/'); return; }
+    setUser(getUser());
+    setAuthed(true);
+    // Confirm the session is still valid (the account may have been disabled or its password reset).
+    let live = true;
+    me().then((u) => { if (!live) return; if (u) setUser(u); else router.replace('/login/'); });
+    return () => { live = false; };
   }, [router]);
+  const admin = isAdmin(user);
   useEffect(() => { document.title = `${title} · Groundwork`; }, [title]);
 
   const nav: [string, string, string][] = [
     ['/', 'Overview', 'overview'], ['/ideas/', 'Ideas', 'ideas'], ['/startups/', 'Startups', 'startups'], ['/funding/', 'Funding', 'funding'],
     ['/opportunities/', 'Opportunities', 'opps'], ['/directory/', 'Directory', 'directory'], ['/jobs/', 'Jobs', 'jobs'], ['/schemes/', region === 'us' ? 'Programs' : 'Schemes', 'schemes'], ['/regulations/', 'Regulations', 'regs'],
+    ...(admin ? [['/users/', 'Users', 'users'] as [string, string, string]] : []),
   ];
   const isActive = (h: string) => (h === '/' ? pathname === '/' : pathname.startsWith(h.replace(/\/$/, '')));
   const active = nav.find(([h]) => isActive(h))?.[0] || '';
@@ -76,8 +85,9 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
       { k: 'Pages', t: 'Funding', h: '/funding/' }, { k: 'Pages', t: 'Funding opportunities', h: '/opportunities/' }, { k: 'Pages', t: 'Directory of funding sources', h: '/directory/' }, { k: 'Pages', t: 'Jobs and skills', h: '/jobs/' },
       { k: 'Pages', t: region === 'us' ? 'Government programs' : 'Government schemes', h: '/schemes/' }, { k: 'Pages', t: 'Regulations', h: '/regulations/' },
     ];
+    if (admin) items.push({ k: 'Pages', t: 'Users', h: '/users/' });
     return items;
-  }, [region]);
+  }, [region, admin]);
   const all = useMemo(() => {
     const out = [...base, ...paletteExtras];
     for (const i of dataApi.data?.ideas || []) out.push({ k: 'Ideas', t: String(i.name), s: 'Score ' + Math.trunc(i.score), h: `/ideas/#${i.slug}` });
@@ -141,7 +151,10 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
               <Link key={href} href={href} aria-current={active === href ? 'page' : undefined}><Icon name={ic} /><span>{label}</span></Link>
             ))}
           </nav>
-          <div className="signout"><button type="button" onClick={signOut}><Icon name="out" /><span>Sign out</span></button></div>
+          <div className="signout">
+            <Link href="/account/" className="acct" aria-current={pathname.startsWith('/account') ? 'page' : undefined}><Icon name="account" /><span>{user ? user.name || user.username : 'Account'}</span></Link>
+            <button type="button" onClick={signOut}><Icon name="out" /><span>Sign out</span></button>
+          </div>
         </aside>
         <div className="main">
           <header className="bar">
