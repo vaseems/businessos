@@ -99,7 +99,7 @@ export function HistoryTable({ section, bare = false }: { section: HistorySectio
   const label = section === 'schemes' && region === 'us' ? info.usLabel : info.label;
 
   return (
-    <div className={bare ? 'hist' : 'hist hist-in'}>
+    <div className={bare ? 'hx' : 'hx hist-in'}>
       <div className="hist-tools">
         <label className="field search"><input type="search" placeholder={`Search ${label.toLowerCase()}`} aria-label={`Search ${label.toLowerCase()}`} value={q} onChange={(e) => setQ(e.target.value)} /></label>
         <label className="field select"><select aria-label="Time range" value={since} onChange={(e) => setSince(Number(e.target.value))}>
