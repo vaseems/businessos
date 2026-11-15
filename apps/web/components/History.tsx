@@ -146,17 +146,3 @@ export function HistoryTable({ section, bare = false }: { section: HistorySectio
     </div>
   );
 }
-
-/** Collapsed panel at the foot of a page. The table loads only when it is opened. */
-export function PreviousResults({ section, title = 'Previous results' }: { section: HistorySection; title?: string }) {
-  const [open, setOpen] = useState(false);
-  const { region } = useApp();
-  const info = SECTIONS[section];
-  const label = section === 'schemes' && region === 'us' ? info.usLabel : info.label;
-  return (
-    <details className="panel hist-panel" onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
-      <summary><span className="hist-title">{title}</span><span className="muted small">All {label.toLowerCase()} on record, newest first</span><a className="hist-all" href={`/history/?s=${section}`} onClick={(e) => e.stopPropagation()}>Open in History</a></summary>
-      {open && <HistoryTable section={section} />}
-    </details>
-  );
-}

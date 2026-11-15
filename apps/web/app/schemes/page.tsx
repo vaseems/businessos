@@ -4,7 +4,6 @@ import { dFull, has, s, safeUrl } from '@/lib/format';
 import { stateMap, stateSlug } from '@/lib/region';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
-import { PreviousResults } from '@/components/History';
 import { Count, SearchField, SelectField } from '@/components/ui';
 
 const STATUS_LBL: Record<string, string> = { active: 'Active', new: 'New', revamped: 'Updated', closing: 'Closing soon', closed: 'Closed' };
@@ -202,7 +201,6 @@ export default function Schemes() {
           ) : null}
 
           <p className="muted small jnote">{rc.central} {rc.noun} apply {rc.everywhere}. State {rc.noun} are listed for {m.covered} of {total} {rc.stateUnit} so far, and more are added over time. Choose your state from the header to see its {rc.noun}. Checked monthly against {rc.portalSrc}. Last refreshed {dFull(data.refreshed_at ?? new Date().toISOString())}.</p>
-          <PreviousResults section="schemes" />
         </>
       )}
     </Page>

@@ -53,7 +53,7 @@ npm run dev                                           # http://localhost:3100
 
 ### Previous results, search and chat
 
-Nothing is deleted from Supabase. The pages show a window of recent rows (funding: last 24 months, 30-day default filter, 400 rows; closed schemes hidden; 10 feed entries on Overview). The **Previous results** panel at the bottom of each page and the **History** page show everything, newest first, in a paginated table with search, a time range and rows per page. Edits and removals are recorded in `change_log` by database triggers from the day the migration was applied (`supabase/migrations/20261116_history_and_roles.sql`); earlier edits were not versioned and are not there.
+Nothing is deleted from Supabase. The pages show a window of recent rows (funding: last 24 months, 30-day default filter, 400 rows; closed schemes hidden; 10 feed entries on Overview). The **History** page (in the sidebar) shows everything, newest first, with a tab for each section and a paginated table with search, a time range and rows per page. Edits and removals are recorded in `change_log` by database triggers from the day the migration was applied (`supabase/migrations/20261116_history_and_roles.sql`); earlier edits were not versioned and are not there.
 
 **Search** (`/search/`, or Cmd/Ctrl+K anywhere) searches ideas, startups, funding rounds, angels, VCs, accelerators, grants, perks, schemes, regulations, roles and skills. Results come in five lanes (Build, Market, Capital, Policy, Careers), with a best match on top and groups below.
 

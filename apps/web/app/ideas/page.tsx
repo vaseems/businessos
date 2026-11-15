@@ -4,7 +4,6 @@ import { downloadCsv } from '@/lib/api';
 import { dFull, dMon, s } from '@/lib/format';
 import { useApi, useApp, useSheetItems, type SheetItem } from '@/components/AppContext';
 import Page from '@/components/Page';
-import { PreviousResults } from '@/components/History';
 import { Glyph, Icon, Ring, Seg, SearchField } from '@/components/ui';
 
 export default function Ideas() {
@@ -84,7 +83,6 @@ export default function Ideas() {
           </ul>
           {!ideas.length && <section className="empty"><h1>No ideas yet</h1><p>New ideas will appear here soon.</p></section>}
           {!!ideas.length && !shown.length && <section className="empty" id="none"><h1>No matches</h1><p>Try a different search or lower the minimum score.</p></section>}
-          <PreviousResults section="ideas" />
         </>
       )}
     </Page>

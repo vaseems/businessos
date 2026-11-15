@@ -75,13 +75,6 @@
 .panel .field,.panel .btn,.panel .seg,.panel .regsw,.panel .statepick,.panel .iconbtn{backdrop-filter:none;-webkit-backdrop-filter:none}
 .panel .field{background:var(--pane-hi)}
 /* Previous results: paginated history tables */
-.hist-panel{margin-top:22px}
-.hist-panel>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;cursor:pointer;list-style:none;padding:2px 0}
-.hist-panel>summary::-webkit-details-marker{display:none}
-.hist-panel>summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--ink2);border-bottom:2px solid var(--ink2);transform:rotate(-45deg);transition:transform .2s;align-self:center;margin-right:2px}
-.hist-panel[open]>summary::before{transform:rotate(45deg)}
-.hist-title{font-size:17px;font-weight:650;letter-spacing:-.02em}
-.hist-all{margin-left:auto;font-size:13px;font-weight:600}
 .hist-in{margin-top:16px}
 .hist-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .hist-tools .search{flex:1 1 220px;min-width:0}
