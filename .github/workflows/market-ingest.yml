@@ -1,0 +1,51 @@
+name: market-ingest
+
+# End-of-day Markets data → Supabase. India runs after NSE publishes its closing files.
+# One-time setup: add the repository secret MARKET_INGEST_TOKEN (Settings → Secrets and variables → Actions).
+on:
+  schedule:
+    - cron: '30 13 * * 1-5'   # 19:00 IST, after NSE closing files are out
+    - cron: '30 2 * * 2-6'    # 08:00 IST next morning — self-heal if the evening run missed a file
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'Region (in)'
+        default: 'in'
+      days:
+        description: 'Calendar days of sessions to (re)load — 8 daily, ~380 for first backfill'
+        default: '8'
+      stock_days:
+        description: 'Calendar days of stock history (tracked symbols) — ~190 for first backfill'
+        default: '8'
+      dry:
+        description: 'Dry run (fetch + validate, write nothing)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: market-ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SUPABASE_URL: https://uzyaqriglnewolxiadhs.supabase.co
+      # publishable (public-by-design) key; the write RPC additionally requires MARKET_INGEST_TOKEN
+      SUPABASE_KEY: sb_publishable_QRxslBW8zXJmth8nleuJfA_tpUkAApW
+      MARKET_INGEST_TOKEN: ${{ secrets.MARKET_INGEST_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Ingest
+        run: |
+          DAYS="${{ github.event.inputs.days || '8' }}"
+          SDAYS="${{ github.event.inputs.stock_days || '8' }}"
+          REGION="${{ github.event.inputs.region || 'in' }}"
+          DRY=""; if [ "${{ github.event.inputs.dry }}" = "true" ]; then DRY="--dry"; fi
+          node scripts/market/ingest.mjs --region "$REGION" --days "$DAYS" --stock-days "$SDAYS" $DRY
