@@ -4,11 +4,12 @@ import { AdminGuard, AuthController, AuthGuard, SessionService } from './auth';
 import { ChatController, ChatService } from './chat';
 import { DataService } from './data.service';
 import { HistoryController } from './history';
+import { MarketController, MarketService } from './market';
 import { SearchController, SearchService } from './search';
 import { UsersController } from './users';
 
 @Module({
-  controllers: [ApiController, AuthController, UsersController, HistoryController, SearchController, ChatController],
-  providers: [DataService, SessionService, AuthGuard, AdminGuard, SearchService, ChatService],
+  controllers: [ApiController, AuthController, UsersController, HistoryController, SearchController, ChatController, MarketController],
+  providers: [DataService, SessionService, AuthGuard, AdminGuard, SearchService, ChatService, MarketService],
 })
 export class AppModule {}

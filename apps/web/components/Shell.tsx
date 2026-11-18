@@ -30,7 +30,7 @@ export default function Shell({ title, children, refresh, stale }: { title: stri
   const nav: [string, string, string][] = [
     ['/', 'Overview', 'overview'], ['/ideas/', 'Ideas', 'ideas'], ['/startups/', 'Startups', 'startups'], ['/funding/', 'Funding', 'funding'],
     ['/opportunities/', 'Opportunities', 'opps'], ['/directory/', 'Directory', 'directory'], ['/jobs/', 'Jobs', 'jobs'], ['/schemes/', region === 'us' ? 'Programs' : 'Schemes', 'schemes'], ['/regulations/', 'Regulations', 'regs'],
-    ['/history/', 'History', 'history'],
+    ['/markets/', 'Markets', 'markets'], ['/history/', 'History', 'history'],
     ...(admin ? [['/users/', 'Users', 'users'] as [string, string, string]] : []),
   ];
   const isActive = (h: string) => (h === '/' ? pathname === '/' : pathname.startsWith(h.replace(/\/$/, '')));

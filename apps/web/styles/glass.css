@@ -166,8 +166,9 @@ body.login{background:var(--canvas)}
 .nav a:nth-child(7) .ic{background:linear-gradient(135deg,var(--c1),var(--c2))}
 .nav a:nth-child(8) .ic{background:var(--grad-warm)}
 .nav a:nth-child(9) .ic{background:linear-gradient(135deg,#0d9488,#22d3ee)}
-.nav a:nth-child(10) .ic{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
-.nav a:nth-child(11) .ic{background:linear-gradient(135deg,#ec4899,#f43f5e)}
+.nav a:nth-child(10) .ic{background:linear-gradient(135deg,#059669,#a3e635)}
+.nav a:nth-child(11) .ic{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+.nav a:nth-child(12) .ic{background:linear-gradient(135deg,#ec4899,#f43f5e)}
 .chips{flex-wrap:wrap;margin-top:12px!important}
 .toolbar .field.select{min-width:220px}
 .tile-name{font-size:16.5px;font-weight:650;letter-spacing:-.01em;margin-top:2px}

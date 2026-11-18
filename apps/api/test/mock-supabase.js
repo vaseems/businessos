@@ -9,6 +9,8 @@ process.env.PASSWORD_HASH = bcrypt.hashSync('Initial-Pass-123', 4);
 process.env.PORT = '3999';
 
 const fixtures = require('./fixtures');
+const market = require('./market-fixture');
+const watch = new Map(); // `${user}|${region}` -> [{symbol, addedAt}]
 const users = [];
 const calls = [];
 const row = (u) => { const { password_hash, ...r } = u; return r; };
@@ -47,6 +49,17 @@ global.fetch = async (url, init) => {
     case 'app_get_policy': out = fixtures.policy; break;
     case 'app_get_funding': out = fixtures.funding; break;
     case 'app_get_funding_sources': out = fixtures.opportunities; break;
+    case 'app_market_overview': out = a.p_region === 'in' ? market.overview() : { region: 'us', asOf: null, stocksAsOf: null, run: null, indices: [], sectors: [], movers: null, startups: [], macro: [], ipos: { open: [], upcoming: [], listed: [] }, holidays: [] }; break;
+    case 'app_market_movers': out = a.p_region === 'in' ? market.movers(a.p_universe, a.p_limit) : null; break;
+    case 'app_market_search': { const q = String(a.p_q || '').toLowerCase(); out = a.p_region !== 'in' ? [] : market.searchable.filter((r) => r.symbol.toLowerCase().startsWith(q) || r.name.toLowerCase().includes(q)).slice(0, a.p_limit); break; }
+    case 'app_market_watch_get': { const w = watch.get(a.p_user + '|' + a.p_region) || []; out = w.map((x) => { const s = market.startups.find((m) => m.symbol === x.symbol); return s ? { ...s, addedAt: x.addedAt } : { symbol: x.symbol, name: x.symbol, close: 100, prev: 99, changePct: 1.01, addedAt: x.addedAt, c: [99, 100], d: ['2026-11-16', '2026-11-17'] }; }); break; }
+    case 'app_market_watch_add': {
+      const k = a.p_user + '|' + a.p_region; const w = watch.get(k) || []; const sym = String(a.p_symbol).toUpperCase();
+      if (!market.searchable.some((r) => r.symbol === sym)) { out = { error: 'unknown_symbol' }; break; }
+      if (w.some((x) => x.symbol === sym)) { out = { ok: true, already: true }; break; }
+      if (w.length >= 50) { out = { error: 'limit' }; break; }
+      w.unshift({ symbol: sym, addedAt: new Date().toISOString() }); watch.set(k, w); out = { ok: true }; break; }
+    case 'app_market_watch_remove': { const k = a.p_user + '|' + a.p_region; watch.set(k, (watch.get(k) || []).filter((x) => x.symbol !== String(a.p_symbol).toUpperCase())); out = { ok: true }; break; }
     case 'app_history': {
       calls.push({ fn, a });
       const all = Array.from({ length: 57 }, (_, i) => ({ d: new Date(Date.UTC(2026, 10, 15 - i)).toISOString(), title: 'Row ' + (i + 1), sub: 'sub', tag: 'x', kind: 'k', ref: 'r' + i }));

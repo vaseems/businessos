@@ -121,3 +121,36 @@ export interface ChatCard { cat: string; label: string; title: string; sub: stri
 export interface ChatOut { reply: string; cards: ChatCard[]; suggestions: string[]; mode: 'search' | 'llm' }
 export const askChat = (message: string, history: { role: 'user' | 'assistant'; text: string }[], page: string, region: RegionCode) =>
   send<ChatOut>('POST', '/chat', { message, history, page, region });
+
+// ── Markets ──────────────────────────────────────────────────────────────────
+export interface MarketItem {
+  symbol: string; name: string; date: string; close: number; prev: number | null; high: number | null; low: number | null;
+  volume: number | null; turnover: number | null; changePct: number | null;
+  chg: Partial<Record<'1w' | '1m' | '3m' | '6m' | '1y', number | null>>;
+  category: string | null; industry: string | null; c?: number[]; d?: string[]; addedAt?: string;
+}
+export interface MarketMover { symbol: string; name: string; industry: string | null; close: number; prev: number; changePct: number; volume: number | null; turnover: number | null }
+export interface MarketMovers { date: string | null; universe: 'nifty500' | 'all'; count: number; advancers: number; decliners: number; gainers: MarketMover[]; losers: MarketMover[] }
+export interface MarketIpo {
+  symbol: string; name: string; segment: 'Mainboard' | 'SME'; open_date: string | null; close_date: string | null; listing_date?: string | null;
+  price_low: number | null; price_high: number | null; issue_size: number | null; issue_price?: number | null;
+  listing_close?: number | null; last_close?: number | null; last_date?: string | null; gain_pct?: number | null; listing_gain_pct?: number | null;
+}
+export interface MarketStatus {
+  exchange: string; session: string; zone: string; state: 'open' | 'closed'; reason: string; stale: boolean; holidaysKnown: boolean;
+  nextOpen: { date: string; time: string; zone: string }; nextHoliday: { day: string; description: string } | null; expectedSession: string;
+}
+export interface MarketOverview {
+  region: RegionCode; empty: boolean; asOf: string | null; stocksAsOf: string | null; status: MarketStatus;
+  run: { ok: boolean; trade_date: string | null; finished_at: string | null; note: string | null } | null;
+  indices: MarketItem[]; sectors: MarketItem[]; movers: MarketMovers | null; startups: MarketItem[]; macro: MarketItem[];
+  ipos: { open: MarketIpo[]; upcoming: MarketIpo[]; listed: MarketIpo[] }; holidays: { day: string; description: string }[];
+}
+export interface StockHit { symbol: string; name: string; industry: string | null; close: number | null; date: string | null; change_pct: number | null }
+
+export const fetchMarket = (region: RegionCode) => send<MarketOverview>('GET', `/market?region=${region}`);
+export const fetchMovers = (region: RegionCode, universe: 'nifty500' | 'all') => send<MarketMovers>('GET', `/market/movers?region=${region}&universe=${universe}&limit=10`);
+export const searchStocks = (region: RegionCode, q: string) => send<StockHit[]>('GET', `/market/search?region=${region}&q=${encodeURIComponent(q)}`);
+export const getWatchlist = (region: RegionCode) => send<MarketItem[]>('GET', `/market/watchlist?region=${region}`);
+export const addWatch = (region: RegionCode, symbol: string) => send<{ ok: boolean; already: boolean }>('POST', '/market/watchlist', { region, symbol });
+export const removeWatch = (region: RegionCode, symbol: string) => send<{ ok: boolean }>('DELETE', `/market/watchlist/${encodeURIComponent(symbol)}?region=${region}`);

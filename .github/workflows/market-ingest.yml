@@ -3,6 +3,8 @@ name: market-ingest
 # End-of-day Markets data → Supabase. India runs after NSE publishes its closing files.
 # One-time setup: add the repository secret MARKET_INGEST_TOKEN (Settings → Secrets and variables → Actions).
 on:
+  push:
+    branches: [market-backfill]   # push this branch to run the one-off history backfill
   schedule:
     - cron: '30 13 * * 1-5'   # 19:00 IST, after NSE closing files are out
     - cron: '30 2 * * 2-6'    # 08:00 IST next morning — self-heal if the evening run missed a file
@@ -46,6 +48,7 @@ jobs:
         run: |
           DAYS="${{ github.event.inputs.days || '8' }}"
           SDAYS="${{ github.event.inputs.stock_days || '8' }}"
+          if [ "${{ github.event_name }}" = "push" ]; then DAYS=380; SDAYS=190; fi
           REGION="${{ github.event.inputs.region || 'in' }}"
           DRY=""; if [ "${{ github.event.inputs.dry }}" = "true" ]; then DRY="--dry"; fi
           node scripts/market/ingest.mjs --region "$REGION" --days "$DAYS" --stock-days "$SDAYS" $DRY
