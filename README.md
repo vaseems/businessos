@@ -75,9 +75,11 @@ Tests: `cd apps/api && npm run build && node test/auth.e2e.js && node test/featu
 
 ## Markets (end-of-day stock market)
 
-The **Markets** page (sidebar, `/markets/`) follows the India / US toggle. **India is live; the US edition shows "coming next"** (the schema, API and page are region-aware, only the US collector is missing).
+The **Markets** page (sidebar, `/markets/`) follows the India / US toggle. Both the **India** and **US** editions are live; the schema, API and page are region-aware and each region has its own collector (`scripts/market/india.mjs`, `scripts/market/us.mjs`).
 
 **What it shows (India):** market open/closed (IST, NSE holiday calendar) with next open, next holiday and the "data as of" date; index cards for Nifty 50, Sensex, Nifty Bank, Nifty Midcap 100, Nifty Smallcap 100 and India VIX with a 1D / 1W / 1M / 3M / 6M / 1Y toggle and a hoverable chart for the selected index; USD/INR, gold, Brent and WTI; top gainers and losers (Nifty 500 or all NSE stocks) with advance/decline breadth; a sector and theme heat map (21 NSE indices); IPOs (open, upcoming, recently listed with listing-day and since-listing gain, Mainboard / SME); about 25 listed startups with category filters; and a **per-user watchlist** with typeahead search (50 per market, private to the user). Direction is always shown with an arrow as well as colour. Data is end of day, not live; figures can differ slightly from a terminal. Information only, not investment advice.
+
+**What it shows (US):** the same layout in US terms. NYSE / Nasdaq status (ET, NYSE holiday calendar); index cards for S&P 500, Nasdaq Composite, Dow Jones, Russell 2000 and VIX; US dollar index, US 10-year yield, gold, WTI and Brent; top movers in the S&P 500 (or including startups and new IPOs); a sector heat map of 14 sector and theme ETFs (XLK, XLF, ... plus Internet, IPO ETF and ARKK); IPOs from the Nasdaq calendar (expected pricing and recently listed, SPACs excluded, filter by exchange); about 44 US-listed startup-born companies (Airbnb, Uber, Coinbase, Palantir, Duolingo, Shopify and others; `STARTUPS` in `us.mjs`); and a US watchlist. Prices are in USD, turnover in $ millions. The database group named `nifty500` is the generic "main index constituents" group, so for the US it holds the S&P 500.
 
 **Data flow.** Browser → `GET /api/market*` (NestJS, cached about 5 minutes, serves the last good copy if Supabase errors) → Supabase RPCs `app_market_*` (app-key protected). Nothing is fetched from exchanges at request time. A scheduled GitHub Action loads the data:
 
@@ -92,14 +94,18 @@ GitHub Action "market-ingest"  →  scripts/market/ingest.mjs  →  RPC app_mark
 | NSE archives `ind_nifty500list.csv`, `EQUITY_L.csv` | Nifty 500 membership and industries, company names, ISINs |
 | NSE JSON `ipo-current-issue`, `all-upcoming-issues`, `public-past-issues`, `holiday-master` | IPOs and the trading-holiday calendar |
 | Yahoo Finance chart API | Sensex (not in NSE files), USD/INR, gold, Brent, WTI |
+| **US:** Yahoo Finance chart API | S&P 500, Nasdaq, Dow, Russell 2000, VIX, sector ETFs, DXY, US 10-year yield, gold, oil, and daily prices for every S&P 500 / startup / IPO stock |
+| **US:** Wikipedia "List of S&P 500 companies" | S&P 500 membership, company names, GICS sectors (validated to 495-510 rows) |
+| **US:** Nasdaq IPO calendar (`api.nasdaq.com/api/ipo/calendar`) | upcoming and priced IPOs, 5 months back and 2 months ahead; SPACs / blank checks dropped |
+| **US:** rule-based NYSE holidays (`nyseHolidays` in `lib.mjs`, tested by `us.test.mjs`) | `market_calendar` (3 years) |
 
 There is no free source for the India 10-year yield, so it is not shown. The listed-startup watchlist is a curated symbol list in `scripts/market/india.mjs` (`STARTUPS`); symbols not found in the exchange files are skipped and reported in the run log.
 
 **Database** (`supabase/migrations/20261118_markets.sql`): `market_quotes` (region, kind index/stock/macro, symbol, trade date), `market_universe` (names, industry, groups: headline, sector, nifty500, startup, macro), `market_ipos`, `market_calendar`, `market_refresh_log`, `market_watchlist` (per user, cascades with the user) and `market_ingest_key` (sha-256 of the ingest token). Row level security is on with no policies and everything is revoked from `anon` / `authenticated`; access is only through `SECURITY DEFINER` RPCs. The read RPCs need the app key like the rest of the app; the write RPCs (`app_market_ingest`, `app_market_ingest_tracked`) need the ingest token.
 
-**Retention.** Indices and macro series are kept; stocks outside Nifty 500, the startup list, IPO listings and anyone's watchlist keep only the latest session; tracked stocks keep history up to 400 days. Re-running a day is safe (upserts).
+**Retention.** Indices and macro series are kept; stocks outside Nifty 500 / S&P 500, the startup list, IPO listings and anyone's watchlist keep only the latest session; tracked stocks keep history up to 400 days. Re-running a day is safe (upserts).
 
-**Schedule and runs.** `.github/workflows/market-ingest.yml` runs weekdays at 19:00 IST (13:30 UTC) and again at 08:00 IST the next morning. Each run reloads the last 8 days, so a missed day heals itself. The API marks data **stale** (banner on the page) if the session that should be loaded by about 19:30 IST is missing, and shows a notice if the last run reported an error (`market_refresh_log`).
+**Schedule and runs.** `.github/workflows/market-ingest.yml` runs the India job weekdays at 19:00 IST (13:30 UTC) and again at 08:00 IST the next morning, and the US job weekdays at 22:30 UTC (17:30 EST / 18:30 EDT) and again at 11:00 UTC the next morning. The cron expression decides the region; manual runs take `region` = `in`, `us` or `both`, and the backfill push loads both. Each run reloads the last 8 days, so a missed day heals itself. For the US a bar for the current day is only used after 16:15 ET. The API marks data **stale** (banner on the page) if the session that should be loaded by about 19:30 IST is missing, and shows a notice if the last run reported an error (`market_refresh_log`).
 
 **One-time setup.**
 1. Add the repository secret `MARKET_INGEST_TOKEN` (Settings → Secrets and variables → Actions). Only its sha-256 is stored in Supabase (`market_ingest_key`). The Supabase URL and the publishable key are public by design and sit in the workflow file.
@@ -112,6 +118,8 @@ There is no free source for the India 10-year yield, so it is not shown. The lis
 ```bash
 # fetch + validate without writing (no secrets needed; NSE only answers from some networks, GitHub runners work)
 node scripts/market/ingest.mjs --region in --days 12 --stock-days 6 --dry
+node scripts/market/ingest.mjs --region us --days 12 --stock-days 6 --dry
+node scripts/market/us.test.mjs        # NYSE holiday rules, no network
 # real run
 SUPABASE_URL=https://<project>.supabase.co SUPABASE_KEY=<publishable key> MARKET_INGEST_TOKEN=... \
   node scripts/market/ingest.mjs --region in --days 8
@@ -119,9 +127,9 @@ SUPABASE_URL=https://<project>.supabase.co SUPABASE_KEY=<publishable key> MARKET
 
 The ingest validates before it writes: Nifty 500 list near 500 symbols, at least 1,500 EQ stocks in the bhavcopy, Nifty 50 and Nifty Bank present, and each index's reported % change is recomputed from close and previous close (mismatches are logged as warnings). A failed run writes `ok=false` to the refresh log and exits non-zero, so the Action shows red.
 
-**Adding the US edition (not built).** Add `scripts/market/us.mjs` with the same `collect()` shape and register it in `collectors` in `ingest.mjs`: indices (^GSPC, ^IXIC, ^RUT), sector ETFs and macro from Yahoo; S&P 500 universe from Wikipedia; IPOs from the Nasdaq IPO calendar; run it after 16:00 ET (about 22:30 UTC); also set the US session in `EXCH` in `apps/api/src/market.ts` (already present) and load US holidays into `market_calendar`.
+**US validation.** The US ingest fails (and logs `ok=false`) if S&P 500, Nasdaq or Russell 2000 data is missing, the Wikipedia list is not 495-510 rows, or fewer than 450 S&P 500 stocks return prices. Startup, IPO or watchlist symbols Yahoo cannot find are skipped and listed in the run warnings. Share classes such as BRK.B are stored with a dot and fetched from Yahoo as BRK-B.
 
-**Troubleshooting.** Page says "loading for the first time": no ingest has completed, check the Action run. "Latest figures are from ..." banner: the evening run failed or NSE had not published yet; the 08:00 IST run retries. A startup row missing: its symbol changed, check the warning in the run log and update `STARTUPS`. Offline UI work: `node apps/api/test/serve-mock.js` includes Markets sample data.
+**Troubleshooting.** Page says "loading for the first time": no ingest has completed, check the Action run. "Latest figures are from ..." banner: the evening run failed or NSE had not published yet; the 08:00 IST run retries. A startup row missing: its symbol changed or it was delisted, check the warning in the run log and update `STARTUPS` in `india.mjs` or `us.mjs`. Offline UI work: `node apps/api/test/serve-mock.js` includes Markets sample data.
 
 ## Deploy
 
