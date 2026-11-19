@@ -74,24 +74,55 @@ export function nowIn(tz) {
   return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) + Number(p.minute) / 60 };
 }
 
-// Yahoo Finance daily chart → [{date, close, open, high, low, volume}] (oldest → newest).
-export async function yahooDaily(symbol, range = '1y') {
+// Yahoo Finance daily chart → { name, bars:[{date, open, high, low, close, volume}] } (oldest → newest).
+export async function yahooChart(symbol, range = '1y') {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`;
   const j = await get(url, { json: true });
   const r = j?.chart?.result?.[0];
   if (!r?.timestamp) throw new Error(`no data for ${symbol}`);
   const off = r.meta?.gmtoffset ?? 0;
   const q = r.indicators.quote[0];
-  const out = [];
+  const byDate = new Map(); // one bar per date (Yahoo can repeat the live bar)
   r.timestamp.forEach((t, i) => {
     const c = num(q.close?.[i]);
     if (c === null) return;
-    out.push({ date: new Date((t + off) * 1000).toISOString().slice(0, 10), open: num(q.open?.[i]), high: num(q.high?.[i]), low: num(q.low?.[i]), close: c, volume: num(q.volume?.[i]) });
+    const date = new Date((t + off) * 1000).toISOString().slice(0, 10);
+    byDate.set(date, { date, open: num(q.open?.[i]), high: num(q.high?.[i]), low: num(q.low?.[i]), close: c, volume: num(q.volume?.[i]) });
   });
-  // one bar per date (Yahoo can repeat the live bar)
-  const byDate = new Map();
-  out.forEach((b) => byDate.set(b.date, b));
-  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return { name: r.meta?.longName || r.meta?.shortName || null, bars: [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date)) };
+}
+export const yahooDaily = async (symbol, range = '1y') => (await yahooChart(symbol, range)).bars;
+
+// Run fn over items with at most n in flight; results keep input order. Errors are returned, not thrown.
+export async function mapLimit(items, n, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      try { out[i] = { ok: true, value: await fn(items[i], i) }; } catch (e) { out[i] = { ok: false, error: e }; }
+    }
+  }));
+  return out;
+}
+
+// NYSE full-day closures for a year (rule based; early 1 pm closes are not holidays).
+export function nyseHolidays(y) {
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const dt = (m, d) => new Date(Date.UTC(y, m - 1, d));
+  const nth = (m, wd, n) => { const d = dt(m, 1); while (d.getUTCDay() !== wd) d.setUTCDate(d.getUTCDate() + 1); d.setUTCDate(d.getUTCDate() + 7 * (n - 1)); return d; };
+  const lastMon = (m) => { const d = dt(m + 1, 0); while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() - 1); return d; };
+  const observed = (d, { satToFri = true } = {}) => { const w = d.getUTCDay(); if (w === 6) return satToFri ? new Date(d.getTime() - 864e5) : null; if (w === 0) return new Date(d.getTime() + 864e5); return d; };
+  // Easter (Anonymous Gregorian algorithm) → Good Friday
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d0 = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d0 - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  const goodFriday = new Date(Date.UTC(y, month - 1, day - 2));
+  const list = [
+    [observed(dt(1, 1), { satToFri: false }), "New Year's Day"], [nth(1, 1, 3), 'Martin Luther King Jr. Day'], [nth(2, 1, 3), "Washington's Birthday"], [goodFriday, 'Good Friday'],
+    [lastMon(5), 'Memorial Day'], [observed(dt(6, 19)), 'Juneteenth'], [observed(dt(7, 4)), 'Independence Day'], [nth(9, 1, 1), 'Labor Day'], [nth(11, 4, 4), 'Thanksgiving Day'], [observed(dt(12, 25)), 'Christmas Day'],
+  ];
+  return list.filter(([d]) => d && d.getUTCFullYear() === y).map(([d, description]) => ({ day: iso(d), description }));
 }
 
 // Chunked, retried RPC to Supabase (PostgREST).

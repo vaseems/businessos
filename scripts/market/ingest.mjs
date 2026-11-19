@@ -11,7 +11,7 @@ const stockDays = Number(arg('stock-days', Math.min(days, 190)));
 const dry = !!arg('dry', false);
 const started = new Date().toISOString();
 
-const collectors = { in: () => import('./india.mjs') };
+const collectors = { in: () => import('./india.mjs'), us: () => import('./us.mjs') };
 if (!collectors[region]) { console.error(`region "${region}" is not implemented yet`); process.exit(2); }
 
 let rpc = null, token = process.env.MARKET_INGEST_TOKEN || '';
@@ -33,8 +33,8 @@ async function main() {
 
   // sanity summary of what we are about to write
   const last = (sym, kind) => quotes.filter((q) => q.symbol === sym && q.kind === kind).sort((a, b) => a.trade_date.localeCompare(b.trade_date)).at(-1);
-  for (const s of ['NIFTY 50', 'SENSEX', 'NIFTY BANK', 'NIFTY MIDCAP 100', 'NIFTY SMALLCAP 100', 'INDIA VIX']) { const q = last(s, 'index'); if (q) console.log(`  ${s.padEnd(20)} ${q.trade_date} close=${q.close} prev=${q.prev_close} (${(((q.close - q.prev_close) / q.prev_close) * 100).toFixed(2)}%)`); }
-  for (const s of ['USDINR', 'GOLD', 'BRENT', 'WTI']) { const q = last(s, 'macro'); if (q) console.log(`  ${s.padEnd(20)} ${q.trade_date} close=${q.close}`); }
+  for (const u of universe.filter((x) => x.kind === 'index' && x.groups?.includes('headline')).sort((a, b) => a.sort - b.sort)) { const q = last(u.symbol, 'index'); if (q) console.log(`  ${u.symbol.padEnd(20)} ${q.trade_date} close=${q.close} prev=${q.prev_close} (${(((q.close - q.prev_close) / q.prev_close) * 100).toFixed(2)}%)`); }
+  for (const u of universe.filter((x) => x.kind === 'macro')) { const q = last(u.symbol, 'macro'); if (q) console.log(`  ${u.symbol.padEnd(20)} ${q.trade_date} close=${q.close}`); }
   const day = quotes.filter((q) => q.kind === 'stock' && q.trade_date === lastSession && q.prev_close);
   const mv = day.map((q) => ({ s: q.symbol, p: ((q.close - q.prev_close) / q.prev_close) * 100 })).sort((a, b) => b.p - a.p);
   console.log('  top gainers :', mv.slice(0, 5).map((x) => `${x.s} ${x.p.toFixed(1)}%`).join(', '));
