@@ -54,7 +54,7 @@ export default function Markets() {
                 <span className="muted small">Change over the last {PERIOD_NAME[period]}{period === '1d' ? ' (latest session)' : ''}</span>
               </div>
 
-              <div className="mk-idx" role="list">
+              <div className={`mk-idx ${data.indices.length === 5 ? 'n5' : ''}`} role="list">
                 {data.indices.map((it) => (
                   <IndexCard key={it.symbol} it={it} p={period} region={region} on={it.symbol === focus} pick={() => setFocus(it.symbol)} />
                 ))}
@@ -74,14 +74,16 @@ export default function Markets() {
 
               <div className="mk-two">
                 <Movers d={data} region={region} />
-                <Sectors items={data.sectors} p={period} />
+                <Sectors items={data.sectors} p={period} region={region} />
               </div>
 
               <Ipos ipos={data.ipos} region={region} />
               <Startups items={data.startups} p={period} region={region} asOf={data.stocksAsOf} />
               <Watchlist region={region} />
               <p className="muted small mk-foot">
-                End-of-day data from NSE (official closing files) and Yahoo Finance for Sensex and global quotes. Figures can differ slightly from a live terminal. Information only, not investment advice.
+                {region === 'us'
+                  ? 'End-of-day data from Yahoo Finance, the Nasdaq IPO calendar and Wikipedia (S&P 500 membership). Figures can differ slightly from a live terminal. Information only, not investment advice.'
+                  : 'End-of-day data from NSE (official closing files) and Yahoo Finance for Sensex and global quotes. Figures can differ slightly from a live terminal. Information only, not investment advice.'}
               </p>
             </>
           )}
@@ -114,21 +116,13 @@ function StatusBar({ d, region }: { d: MarketOverview; region: string }) {
 }
 
 function Empty({ d }: { d: MarketOverview }) {
-  const { setRegion } = useApp();
+  const us = d.region === 'us';
   return (
     <section className="panel mk-empty">
-      {d.region === 'us' ? (
-        <>
-          <h2>US markets are coming next</h2>
-          <p className="muted">The India market is live today: indices, movers, sectors, IPOs, listed startups and your watchlist. The US edition (S&amp;P 500, Nasdaq, Russell 2000 and more) is being added.</p>
-          <button className="btn" type="button" onClick={() => setRegion('in')}>Show India</button>
-        </>
-      ) : (
-        <>
-          <h2>Market data is being loaded for the first time</h2>
-          <p className="muted">The first end-of-day update has not completed yet. It runs every weekday evening (IST) after NSE publishes its closing files, and this page fills in automatically after that.</p>
-        </>
-      )}
+      <h2>Market data is being loaded for the first time</h2>
+      <p className="muted">{us
+        ? 'The first US end-of-day update has not completed yet. It runs every weekday evening (US Eastern) after the close, and this page fills in automatically after that.'
+        : 'The first end-of-day update has not completed yet. It runs every weekday evening (IST) after NSE publishes its closing files, and this page fills in automatically after that.'}</p>
     </section>
   );
 }
@@ -151,7 +145,7 @@ function IndexCard({ it, p, region, on, pick }: { it: MarketItem; p: Period; reg
 function MacroStrip({ macro, vix, region, p }: { macro: MarketItem[]; vix: MarketItem | null; region: any; p: Period }) {
   const items = [...macro, ...(vix ? [vix] : [])];
   if (!items.length) return null;
-  const dec = (it: MarketItem) => (it.symbol === 'USDINR' ? 3 : 2);
+  const dec = (it: MarketItem) => (it.symbol === 'USDINR' || it.symbol === 'US10Y' ? 3 : 2);
   return (
     <section className="mk-macro" aria-label="Currency, commodities and volatility">
       {items.map((it) => {
@@ -186,15 +180,15 @@ function Movers({ d, region }: { d: MarketOverview; region: any }) {
     <section className="panel mk-movers">
       <div className="panel-head">
         <h2>Top movers</h2>
-        <Seg label="Stock universe" value={uni} options={[['nifty500', 'Nifty 500'], ['all', 'All NSE stocks']]} onChange={(v) => setUni(v as any)} />
+        <Seg label="Stock universe" value={uni} options={region === 'us' ? [['nifty500', 'S&P 500'], ['all', 'Incl. startups & new IPOs']] : [['nifty500', 'Nifty 500'], ['all', 'All NSE stocks']]} onChange={(v) => setUni(v as any)} />
       </div>
       {err && <Notice>{err}</Notice>}
       {!m ? <p className="muted small">{busy ? 'Loading…' : 'No stock data yet.'}</p> : (
         <>
           <div className="mk-breadth" aria-label={`${adv} advancing, ${dec} declining`}>
-            <span className="up">▲ {adv.toLocaleString('en-IN')} advancing</span>
+            <span className="up">▲ {adv.toLocaleString(region === 'us' ? 'en-US' : 'en-IN')} advancing</span>
             <span className="mk-bbar" aria-hidden="true"><i style={{ width: `${(adv / tot) * 100}%` }} /></span>
-            <span className="down">{dec.toLocaleString('en-IN')} declining ▼</span>
+            <span className="down">{dec.toLocaleString(region === 'us' ? 'en-US' : 'en-IN')} declining ▼</span>
           </div>
           <div className="mk-cols">
             <MoverList title="Gainers" rows={m.gainers} region={region} />
@@ -226,12 +220,12 @@ function MoverList({ title, rows, region }: { title: string; rows: MarketMovers[
 }
 
 /* ── sector heat map ────────────────────────────────────────────────────── */
-function Sectors({ items, p }: { items: MarketItem[]; p: Period }) {
+function Sectors({ items, p, region }: { items: MarketItem[]; p: Period; region: string }) {
   const rows = useMemo(() => items.map((s) => ({ s, v: changeOf(s, p) })).sort((a, b) => (b.v ?? -999) - (a.v ?? -999)), [items, p]);
   const scale = Math.max(0.6, ...rows.map((r) => Math.abs(r.v ?? 0)).sort((a, b) => a - b).slice(0, Math.max(1, Math.ceil(rows.length * 0.9))));
   return (
     <section className="panel mk-sectors">
-      <div className="panel-head"><h2>Sectors</h2><span className="muted small">NSE sector &amp; theme indices · {PERIODS.find((x) => x[0] === p)![1]}</span></div>
+      <div className="panel-head"><h2>Sectors</h2><span className="muted small">{region === 'us' ? 'Sector & theme ETFs' : 'NSE sector & theme indices'} · {PERIODS.find((x) => x[0] === p)![1]}</span></div>
       {!rows.length ? <p className="muted small">No sector data yet.</p> : (
         <ul className="mk-heat">
           {rows.map(({ s, v }) => (
@@ -248,42 +242,45 @@ function Sectors({ items, p }: { items: MarketItem[]; p: Period }) {
 
 /* ── IPOs ───────────────────────────────────────────────────────────────── */
 function Ipos({ ipos, region }: { ipos: MarketOverview['ipos']; region: any }) {
-  const [tab, setTab] = useState<'open' | 'upcoming' | 'listed'>('open');
+  const us = region === 'us';
+  const [tab, setTab] = useState<'open' | 'upcoming' | 'listed'>(us ? 'upcoming' : 'open');
   const [seg, setSeg] = useState('all');
-  useEffect(() => { if (!ipos.open.length && ipos.upcoming.length) setTab('upcoming'); }, [ipos.open.length, ipos.upcoming.length]);
+  useEffect(() => { if (!us && !ipos.open.length && ipos.upcoming.length) setTab('upcoming'); }, [us, ipos.open.length, ipos.upcoming.length]);
+  useEffect(() => { setSeg('all'); }, [region]);
+  const segs = useMemo(() => (us ? [...new Set([...ipos.upcoming, ...ipos.listed].map((x) => x.segment).filter(Boolean))].sort() : ['Mainboard', 'SME']), [us, ipos.upcoming, ipos.listed]);
   const list = ipos[tab].filter((x) => seg === 'all' || x.segment === seg);
-  const band = (i: MarketIpo) => (i.price_low && i.price_high ? (i.price_low === i.price_high ? price(i.price_low, region) : `${price(i.price_low, region)} – ${price(i.price_high, region)}`) : 'Price band to be announced');
-  const TABS: [typeof tab, string][] = [['open', 'Open now'], ['upcoming', 'Upcoming'], ['listed', 'Recently listed']];
+  const band = (i: MarketIpo) => (i.price_low && i.price_high ? (i.price_low === i.price_high ? price(i.price_low, region) : `${price(i.price_low, region)} – ${price(i.price_high, region)}`) : region === 'us' ? 'Price range to be announced' : 'Price band to be announced');
+  const TABS: [typeof tab, string][] = us ? [['upcoming', 'Expected pricing'], ['listed', 'Recently listed']] : [['open', 'Open now'], ['upcoming', 'Upcoming'], ['listed', 'Recently listed']];
   return (
     <section className="panel mk-ipos">
       <div className="panel-head">
         <h2>IPOs</h2>
-        <Seg label="Segment" value={seg} options={[['all', 'All'], ['Mainboard', 'Mainboard'], ['SME', 'SME']]} onChange={setSeg} />
+        {segs.length > 1 && <Seg label={us ? 'Exchange' : 'Segment'} value={seg} options={[['all', 'All'], ...segs.map((x) => [x, x] as [string, string])]} onChange={setSeg} />}
       </div>
       <div className="hist-tabs" role="tablist" aria-label="IPO status">
         {TABS.map(([k, l]) => (
           <button type="button" role="tab" key={k} aria-selected={tab === k} className="hist-tab" onClick={() => setTab(k)}>{l} <span className="mk-n">{ipos[k].length}</span></button>
         ))}
       </div>
-      {!list.length ? <p className="muted small mk-none">{tab === 'open' ? 'No IPO is open for subscription right now.' : tab === 'upcoming' ? 'No upcoming IPOs announced.' : 'No recent listings.'}</p> : (
+      {!list.length ? <p className="muted small mk-none">{tab === 'open' ? 'No IPO is open for subscription right now.' : tab === 'upcoming' ? us ? 'No IPOs expected to price soon.' : 'No upcoming IPOs announced.' : 'No recent listings.'}</p> : (
         <div className="mk-table" role="table" aria-label="IPOs">
-          <div className={`mk-tr mk-th ${tab === 'listed' ? 'c5' : ''}`} role="row"><span role="columnheader">Company</span><span role="columnheader">{tab === 'listed' ? 'Listed' : 'Subscription'}</span><span role="columnheader">{tab === 'listed' ? 'Issue price' : 'Price band'}</span><span role="columnheader">{tab === 'listed' ? 'On listing' : 'Size'}</span>{tab === 'listed' && <span role="columnheader">Since listing</span>}</div>
+          <div className={`mk-tr mk-th ${tab === 'listed' ? 'c5' : ''}`} role="row"><span role="columnheader">Company</span><span role="columnheader">{tab === 'listed' ? 'Listed' : us ? 'Expected date' : 'Subscription'}</span><span role="columnheader">{tab === 'listed' ? (us ? 'Offer price' : 'Issue price') : us ? 'Price range' : 'Price band'}</span><span role="columnheader">{tab === 'listed' ? 'On listing' : 'Size'}</span>{tab === 'listed' && <span role="columnheader">Since listing</span>}</div>
           {list.map((i) => (
             <div className={`mk-tr ${tab === 'listed' ? 'c5' : ''}`} role="row" key={i.symbol + i.open_date}>
               <span role="cell" className="mk-co"><b>{i.name}</b><small>{i.symbol} <em className={`mk-tag ${i.segment === 'SME' ? 'sme' : ''}`}>{i.segment}</em></small></span>
-              <span role="cell">{tab === 'listed' ? dFull(i.listing_date) : `${dMon(i.open_date)} – ${dFull(i.close_date)}`}</span>
+              <span role="cell">{tab === 'listed' ? dFull(i.listing_date) : us ? dFull(i.open_date) : `${dMon(i.open_date)} – ${dFull(i.close_date)}`}</span>
               <span role="cell">{tab === 'listed' ? price(i.issue_price, region) : band(i)}</span>
               {tab === 'listed' ? (
                 <>
                   <span role="cell">{i.listing_gain_pct === null || i.listing_gain_pct === undefined ? <span className="muted">Awaiting data</span> : <Delta v={i.listing_gain_pct} />}</span>
                   <span role="cell">{i.gain_pct === null || i.gain_pct === undefined ? <span className="muted">—</span> : <Delta v={i.gain_pct} />}</span>
                 </>
-              ) : <span role="cell">{i.issue_size ? `₹${level(i.issue_size, region, i.issue_size >= 100 ? 0 : 1)} Cr` : '—'}</span>}
+              ) : <span role="cell">{i.issue_size ? (us ? `$${level(i.issue_size, region, i.issue_size >= 100 ? 0 : 1)}M` : `₹${level(i.issue_size, region, i.issue_size >= 100 ? 0 : 1)} Cr`) : '—'}</span>}
             </div>
           ))}
         </div>
       )}
-      <p className="muted small">NSE lists mainboard and SME issues. Dates are subscription windows; listing gains use the first and latest closing prices against the issue price.</p>
+      <p className="muted small">{us ? 'US IPOs from the Nasdaq calendar (SPACs excluded). Expected dates can slip or be withdrawn; listing gains use the first and latest closing prices against the offer price.' : 'NSE lists mainboard and SME issues. Dates are subscription windows; listing gains use the first and latest closing prices against the issue price.'}</p>
     </section>
   );
 }

@@ -25,7 +25,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   assert.ok(r.j.sectors[0].chg && 'changePct' in r.j.sectors[0]);
   assert.ok(r.j.status && ['open', 'closed'].includes(r.j.status.state) && r.j.status.nextOpen.date, 'status is computed');
   assert.equal(r.j.ipos.open.length, 1);
-  r = await call('GET', '/market?region=us', null, asha); assert.equal(r.s, 200); assert.equal(r.j.empty, true, 'US has no data yet and says so'); assert.equal(r.j.indices.length, 0);
+  r = await call('GET', '/market?region=us', null, asha); assert.equal(r.s, 200); assert.equal(r.j.empty, false); assert.equal(r.j.region, 'us'); assert.equal(r.j.indices.length, 5); assert.equal(r.j.status.zone, 'ET'); assert.equal(r.j.macro.some((m) => m.symbol === 'US10Y'), true);
+  r = await call('GET', '/market/search?region=us&q=pltr', null, asha); assert.equal(r.j[0].symbol, 'PLTR');
 
   // movers / search
   r = await call('GET', '/market/movers?region=in&universe=all&limit=5', null, asha); assert.equal(r.s, 200); assert.equal(r.j.universe, 'all'); assert.ok(r.j.gainers.length <= 5);
@@ -48,6 +49,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   r = await call('DELETE', '/market/watchlist/%20%20?region=in', null, asha); assert.equal(r.s, 400);
   r = await call('GET', '/market/watchlist?region=in'); assert.equal(r.s, 401);
 
+  r = await call('POST', '/market/watchlist', { region: 'us', symbol: 'pltr' }, asha); assert.equal(r.s, 201, 'US watch add');
+  r = await call('GET', '/market/watchlist?region=us', null, asha); assert.equal(r.j.length, 1); assert.equal(r.j[0].symbol, 'PLTR');
+  r = await call('GET', '/market/watchlist?region=in', null, asha); assert.equal(r.j.length, 0, 'watchlists are per region');
+  r = await call('POST', '/market/watchlist', { region: 'us', symbol: 'ETERNAL' }, asha); assert.equal(r.s, 400, 'an Indian symbol is unknown in the US list');
+  r = await call('DELETE', '/market/watchlist/PLTR?region=us', null, asha); assert.equal(r.s, 200);
   // status rules (pure function, IST)
   const { marketStatus } = require('../dist/market.js');
   const hol = [{ day: '2026-11-24', description: 'Guru Nanak Jayanti' }];
@@ -64,6 +70,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   s = marketStatus('in', hol, at('2026-11-25T05:00:00Z'), '2026-11-23'); assert.equal(s.stale, false, 'Tue morning: Mon is the latest (Tue 24 was a holiday)'.replace('Tue morning','Wed morning'));
   s = marketStatus('us', [], at('2026-11-18T15:00:00Z')); assert.equal(s.state, 'open', '10:00 ET'); assert.equal(s.zone, 'ET');
   s = marketStatus('us', [], at('2026-11-18T22:00:00Z')); assert.equal(s.state, 'closed');
+  s = marketStatus('us', [], at('2026-11-18T22:00:00Z'), '2026-11-17'); assert.equal(s.stale, false, '17:00 ET: US data is not due until ~20:00 ET');
+  s = marketStatus('us', [], at('2026-11-19T02:00:00Z'), '2026-11-17'); assert.equal(s.stale, true, '21:00 ET Wed: Wednesday data should be loaded');
+  s = marketStatus('us', [{ day: '2026-11-26', description: 'Thanksgiving Day' }], at('2026-11-26T15:00:00Z')); assert.match(s.reason, /Holiday: Thanksgiving/); assert.equal(s.nextOpen.date, '2026-11-27');
   console.log('market e2e passed');
   process.exit(0);
 })().catch((e) => { console.error('FAIL', e); process.exit(1); });

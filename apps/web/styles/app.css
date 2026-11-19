@@ -195,6 +195,8 @@ mark{background:color-mix(in srgb,var(--c4) 38%,transparent);color:inherit;borde
 .mk-pill.closed{color:var(--ink2)}.mk-pill.closed .dot{background:var(--ink3);animation:none;box-shadow:none}
 .mk-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 .mk-idx{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.mk-idx.n5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1180px){.mk-idx.n5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
 .mk-card{display:grid;gap:3px;text-align:left;padding:14px 16px 10px;border-radius:20px;border:1px solid var(--pane-edge);background:var(--pane);box-shadow:var(--pane-shadow);color:var(--ink);transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;min-width:0}
 .mk-card:hover{transform:translateY(-2px)}
 .mk-card[aria-pressed=true]{border-color:var(--accent);box-shadow:var(--pane-shadow),0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}

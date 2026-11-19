@@ -53,4 +53,24 @@ const ipos = {
 const overview = () => ({ region: 'in', asOf: '2026-11-17', stocksAsOf: '2026-11-17', run: { ok: true, trade_date: '2026-11-17', finished_at: '2026-11-17T13:42:00Z', note: null },
   indices: head, sectors, movers: movers('nifty500'), startups, macro, ipos, holidays: [{ day: '2026-11-24', description: 'Prakash Gurpurb Sri Guru Nanak Dev' }, { day: '2026-12-25', description: 'Christmas' }] });
 const searchable = [...startups.map((s) => ({ ...s, c: undefined, d: undefined })), ...more].map((s) => ({ symbol: s.symbol, name: s.name, industry: s.industry, close: s.close, date: '2026-11-17', change_pct: s.changePct }));
-module.exports = { overview, movers, searchable, startups };
+
+// ---- US edition (compact) ----------------------------------------------------
+const US_HEAD = [item('S&P 500', 'S&P 500', 7300, 252, 0.008), item('NASDAQ COMPOSITE', 'Nasdaq Composite', 24400, 252, 0.011), item('DOW JONES', 'Dow Jones', 50000, 252, 0.007), item('RUSSELL 2000', 'Russell 2000', 2700, 252, 0.012), item('VIX', 'VIX', 24.5, 252, 0.05)];
+const US_SECT = ['Technology', 'Financials', 'Health Care', 'Consumer Discretionary', 'Consumer Staples', 'Energy', 'Industrials', 'Materials', 'Utilities', 'Real Estate', 'Communication Services', 'Internet', 'IPO ETF', 'Innovation (ARKK)'].map((n, i) => item(n.toUpperCase(), n, 60 + i * 9, 252, 0.012));
+const US_MACRO = [['DXY', 'US Dollar Index', 103.9], ['US10Y', 'US 10-year yield (%)', 5.066], ['GOLD', 'Gold (USD/oz)', 3726], ['WTI', 'WTI crude (USD/bbl)', 82.2], ['BRENT', 'Brent crude (USD/bbl)', 89.4]].map(([s, n, b]) => item(s, n, b, 40, 0.008));
+const US_ST = [['ABNB', 'Airbnb, Inc.', 'Marketplace', 'Consumer Discretionary', 124], ['UBER', 'Uber Technologies, Inc.', 'Mobility', 'Industrials', 88], ['COIN', 'Coinbase Global, Inc.', 'Fintech / crypto', 'Financials', 260], ['PLTR', 'Palantir Technologies Inc.', 'Data / AI', 'Information Technology', 160], ['DUOL', 'Duolingo, Inc.', 'Edtech', 'Consumer Discretionary', 320], ['SHOP', 'Shopify Inc.', 'E-commerce platform', 'Information Technology', 110]];
+const US_STARTUPS = US_ST.map(([s, n, cat, ind, b]) => item(s, n, b, 100, 0.03, { category: cat, industry: ind, volume: 3e6 }));
+const US_MORE = [['AAPL', 'Apple Inc.', 'Information Technology', 230], ['MSFT', 'Microsoft Corporation', 'Information Technology', 480], ['NVDA', 'Nvidia Corporation', 'Information Technology', 190], ['JPM', 'JPMorgan Chase & Co.', 'Financials', 310], ['XOM', 'Exxon Mobil Corporation', 'Energy', 118], ['LLY', 'Eli Lilly and Company', 'Health Care', 900]]
+  .map(([s, n, ind, b], i) => { const p = Math.round((rnd() - 0.45) * 800) / 100; return { symbol: s, name: n, industry: ind, close: b, prev: Math.round((b / (1 + p / 100)) * 100) / 100, changePct: p, volume: 2e7, turnover: 9000 + i * 400 }; });
+const US_STOCKS = US_ST.map(([s, n, , ind], i) => ({ symbol: s, name: n, industry: ind, close: US_STARTUPS[i].close, prev: US_STARTUPS[i].prev, changePct: US_STARTUPS[i].changePct, volume: US_STARTUPS[i].volume, turnover: 900 + i * 31 }));
+const US_ALL = [...US_STOCKS, ...US_MORE];
+const usMovers = (universe, limit = 10) => { const r = rank(universe === 'all' ? US_ALL : US_MORE); return { date: '2026-11-17', universe, count: r.length, advancers: r.filter((x) => x.changePct > 0).length, decliners: r.filter((x) => x.changePct < 0).length, gainers: r.filter((x) => x.changePct > 0).slice(0, limit), losers: r.filter((x) => x.changePct < 0).reverse().slice(0, limit) }; };
+const usIpos = {
+  open: [],
+  upcoming: [{ symbol: 'ANTH', name: 'Example Robotics, Inc.', segment: 'NASDAQ', open_date: '2026-11-20', close_date: '2026-11-20', price_low: 18, price_high: 20, issue_size: 410 }, { symbol: 'KLRN', name: 'Klarion Health Corp', segment: 'NYSE', open_date: '2026-11-21', close_date: '2026-11-21', price_low: 14, price_high: 14, issue_size: 96.5 }],
+  listed: [{ symbol: 'RZAI', name: 'Razor AI Holdings', segment: 'NASDAQ', open_date: '2026-11-05', close_date: '2026-11-05', listing_date: '2026-11-06', price_low: 16, price_high: 18, issue_price: 18, listing_close: 22.4, last_close: 25.1, last_date: '2026-11-17', gain_pct: 39.44, listing_gain_pct: 24.44 }],
+};
+const overviewUs = () => ({ region: 'us', asOf: '2026-11-17', stocksAsOf: '2026-11-17', run: { ok: true, trade_date: '2026-11-17', finished_at: '2026-11-17T22:50:00Z', note: null },
+  indices: US_HEAD, sectors: US_SECT, movers: usMovers('sp500'), startups: US_STARTUPS, macro: US_MACRO, ipos: usIpos, holidays: [{ day: '2026-11-26', description: "Thanksgiving Day" }, { day: '2026-12-25', description: 'Christmas Day' }] });
+const usSearchable = [...US_STARTUPS.map((s) => ({ ...s, c: undefined, d: undefined })), ...US_MORE].map((s) => ({ symbol: s.symbol, name: s.name, industry: s.industry, close: s.close, date: '2026-11-17', change_pct: s.changePct }));
+module.exports = { overview, movers, searchable, startups, overviewUs, usMovers, usSearchable, usStartups: US_STARTUPS };
