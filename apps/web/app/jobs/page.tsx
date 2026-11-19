@@ -205,7 +205,7 @@ export default function Jobs() {
                       {g.rows.map((r) => (
                         <li className="row jrow" key={g.key + r.slug} data-slug={r.slug}>
                           <button type="button" className="row-btn" onClick={() => openSheet(r.item)}>
-                            <span className={`rkb${r.rank === null || r.rank === undefined ? ' none' : ''}`}>{nn(r.rank) ? Math.trunc(r.rank) : '·'}</span>
+                            <span className={`rkb${r.rank === null || r.rank === undefined ? ' none' : ''}`} {...(nn(r.rank) ? {} : { title: 'The source lists this role without a rank', 'aria-label': r.neg ? 'Declining role, not individually ranked' : 'Growing role, not individually ranked' })}>{nn(r.rank) ? Math.trunc(r.rank) : r.neg ? '↘' : '↗'}</span>
                             <span className="row-main"><b className="row-title">{r.title}</b><span className="row-sub">{r.sub}</span></span>
                             <span className={`jmetric ${r.neg ? 'neg' : 'pos'}`}>{r.metric}</span>
                             <span className="glyph"><span className="tag">{r.conf}</span></span>
